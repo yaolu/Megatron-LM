@@ -49,6 +49,10 @@ def free_output_tensor(output_tensors):
     sent to the next pipeline stage. At this point, the output tensor is
     only useful for its '.grad_fn' field, and not its '.data'.
     '''
+
+    # Hack for now
+    return
+    
     if output_tensors is None:
         return
     if isinstance(output_tensors, torch.Tensor):
@@ -164,7 +168,11 @@ def backward_step(optimizer, input_tensor, output_tensor, output_tensor_grad):
     # Backward pass.
     if output_tensor_grad[0] is None:
         output_tensor = optimizer.scale_loss(output_tensor[0])
-    custom_backward(output_tensor[0], output_tensor_grad[0])
+
+    # Hack for now
+    torch.autograd.backward(output_tensor[0],
+                            grad_tensors=output_tensor_grad[0])
+    #custom_backward(output_tensor[0], output_tensor_grad[0])
 
     # Collect the grad of the input_tensor.
     input_tensor_grad = [None]
