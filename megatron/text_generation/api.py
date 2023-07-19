@@ -14,6 +14,8 @@ from .generation import (
 from .tokenization import (
     tokenize_prompts,
     detokenize_generations)
+from .. import print_rank_0
+
 
 def generate_and_post_process(model,
                               prompts=None,
@@ -120,9 +122,12 @@ def generate(model,
     # Note that these tensors are broadcaseted to all ranks.
     if torch.distributed.get_rank() == 0:
         assert prompts is not None
-    
+
+    print_rank_0(prompts)
     context_tokens_tensor, context_length_tensor = tokenize_prompts(
         prompts=prompts, tokens_to_generate=tokens_to_generate, add_BOS=add_BOS)
+    print_rank_0(context_tokens_tensor)
+    print_rank_0(context_length_tensor)
 
     if tokens_to_generate == 0:
         return score_and_return_on_first_stage(
