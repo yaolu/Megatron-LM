@@ -85,9 +85,9 @@ GPT_ARGS="--apply-layernorm-1p \
         --tokenizer-type GPTSentencePieceTokenizer \
         --tokenizer-model ${TOKENIZER_MODEL} \
         --clip-grad 1.0 \
-        --weight-decay 0.1 \
+        --weight-decay 0.01 \
         --adam-beta1 0.9 \
-        --adam-beta2 0.95 \
+        --adam-beta2 0.98 \
         --log-params-norm \
         --log-num-zeros-in-grad \
         --bf16 \

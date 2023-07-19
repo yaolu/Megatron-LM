@@ -8,29 +8,31 @@ global_bsz=$3
 lr=$4
 ft_neighbours=$5
 model_card=$6
-load=$7
 TASK=none
 
-train_iters=15000
+train_iters=1000
 
-. ./examples/foundational_qa/common_args.sh
+. ./examples/foundational_qa/sft_common_args.sh
 
 num_nodes=1
 num_gpus=8
 
-if [[ $model_size == "8b" ]]; then
-    num_nodes=1
+if [[ $model_size == "2b" ]]; then
+    num_nodes=4
+    lr=5e-6
     min_lr=5e-6
 fi
 
 if [[ $model_size == "8b" ]]; then
     num_nodes=4
-    min_lr=0.00000001
+    lr=5e-6
+    min_lr=5e-6
 fi
 
 if [[ $model_size == "43b" ]]; then
     num_nodes=64
-    min_lr=0.00000001
+    lr=5e-6
+    min_lr=5e-6
 fi
 
 SAVENAME="${blend_name}_${model_card}_same_format_ctx${ft_neighbours}_${model_size}_${global_bsz}_${lr}"
@@ -39,11 +41,11 @@ TENSORBOARD_DIR="${QA_HOME}/tensorboard/${SAVENAME}"
 mkdir -p ${TENSORBOARD_DIR}
 
 OUTPUT_ARGS="--log-interval 10 \
-             --save-interval 1500 \
+             --save-interval 500 \
              --eval-interval 200 \
              --tensorboard-dir ${TENSORBOARD_DIR} \
              --log-validation-ppl-to-tensorboard \
-             --eval-iters 200"
+             --eval-iters 100"
 
 . ./examples/foundational_qa/${blend_name}.sh
 
@@ -63,13 +65,13 @@ options=" \
     $OUTPUT_ARGS \
     $FT_ARGS"
 
-#if [[ $model_card == *unbiased_cuckoo* ]]; then
-#    PRETRAINED_CHECKPOINT=$unbiased_cuckoo
-#fi
-#if [[ $model_card == *quiet_cockatoo* ]]; then
-#    PRETRAINED_CHECKPOINT=$quiet_cockatoo
-#fi
-PRETRAINED_CHECKPOINT=$7
+if [[ $model_card == *unbiased_cuckoo* ]]; then
+    PRETRAINED_CHECKPOINT=$unbiased_cuckoo
+fi
+if [[ $model_card == *quiet_cockatoo* ]]; then
+    PRETRAINED_CHECKPOINT=$quiet_cockatoo
+fi
+
 
 if [[ -d "$CHECKPOINT_PATH" ]]; then
     options="$options \
@@ -78,7 +80,7 @@ else
     options="$options \
         --load $PRETRAINED_CHECKPOINT \
         --finetune \
-	--no-load-rng \
+	      --no-load-rng \
         --no-load-optim "
 fi
 
@@ -101,4 +103,4 @@ export CUDA_DEVICE_MAX_CONNECTIONS=1
 
 
 echo ${run_cmd}
-submit_job --gpu ${num_gpus} --nodes ${num_nodes} --email_mode never  --mounts $MOUNTS --partition $PARTITION  --image $DOCKER -c "$LAUNCH ${run_cmd}" -n "${SAVENAME}" --duration 3   # --dependent_clones 1
+submit_job --gpu ${num_gpus} --nodes ${num_nodes} --email_mode never  --mounts $MOUNTS --partition $PARTITION  --image $DOCKER -c "$LAUNCH ${run_cmd}" -n "${SAVENAME}" --duration 3  # --dependent_clones 1

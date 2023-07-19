@@ -10,6 +10,7 @@ ft_neighbours=$8
 use_retrieved_neighbours=$9
 model_card="unbiased_cuckoo_pp1"
 model_card="quiet_cockatoo_pp1"
+model_card="pp1"
 
 . ./examples/foundational_qa/common_args.sh
 . ./examples/foundational_qa/gen_input.sh
