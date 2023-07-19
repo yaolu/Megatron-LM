@@ -31,8 +31,9 @@ from megatron.model import GPTModel
 from megatron.training import get_model
 from megatron.text_generation import generate_and_post_process, beam_search_and_post_process
 from megatron.text_generation.retro_api import retro_generate_and_post_process, retro_beam_search_and_post_process
-from main import get_tasks_args
-from dataset import preprocess, pad_neighbours_for_query_only
+from finetune_gpt_with_pretrain import get_tasks_args
+from dataset import pad_neighbours_for_query_only
+from dataset_conv import reformat_prompt_v2, preprocess, reformat_prompt_v1
 import numpy as np
 import time
 # from tasks.prompt_learning.task_datasets import e2e_format_query, xsum_format_s
@@ -45,9 +46,6 @@ def model_provider(pre_process=True, post_process=True):
     model = GPTModel(num_tokentypes=0, parallel_output=False,
                      pre_process=pre_process, post_process=post_process)
 
-    if getattr(args, 'prefix_tuning', False):
-        print_rank_0('building prefix tuning model ...')
-        model = PrefixTuningModel("tbd", model, args.shallow)
     return model
 
 def add_text_generate_args(parser):
@@ -99,6 +97,8 @@ def add_text_generate_args(parser):
                         help='setting ckpt step manually')
     group.add_argument("--short-format", action='store_true',
                        help='Use short format QA')
+    group.add_argument("--use-retrieved-neighbours", action='store_true', default=False,
+                       help='Use retrieved neighbours')
     return parser
 
 def generate_samples_conditional(model):
@@ -109,16 +109,13 @@ def generate_samples_conditional(model):
     model.eval()
     if torch.distributed.get_rank() == 0:
 
-        data = preprocess(args.sample_input_file, inference_only=True)
+        # data = preprocess(args.sample_input_file, inference_only=True)
+        data = preprocess(args.sample_input_file, inference_only=True, retrieved_neighbours=args.use_retrieved_neighbours)
         print("total rows {}".format(len(data)))
-        all_raw_text = [item[0] for item in data]
-        all_neighbours = [item[-1] for item in data]
-        all_raw_text = all_raw_text[args.gen_start_idx:] ## start fron gen_start_idx
-        all_neighbours = all_neighbours[args.gen_start_idx:]
+        all_data = data[args.gen_start_idx:]  ## start fron gen_start_idx
         if args.num_gen > 0:
-            all_raw_text = all_raw_text[:args.num_gen] ## end at number of gen
-            all_neighbours = all_neighbours[:args.num_gen]
-        input_count = len(all_raw_text)
+            all_data = all_data[:args.num_gen]
+        input_count = len(all_data)
         input_pos = 0
 
     if args.beam_search:
@@ -137,31 +134,40 @@ def generate_samples_conditional(model):
                     print("reach the last row")
                     break
                 else:
-                    raw_text = all_raw_text[input_pos]
-                    neighbours = all_neighbours[input_pos]
+                    sample = all_data[input_pos]
                 input_pos += 1
                 
-                valid_tasks = ['nq', 'tqa', 'benz', 'landrover', 'ford', 'att', 'iternal', 'carmanual', 'nvit', 'tcs', 'doc2dial', 'benefits']
-                if args.task.lower() in valid_tasks or any([x in args.task.lower() for x in valid_tasks]):
+                # valid_tasks = ['nq', 'tqa', 'benz', 'landrover', 'ford', 'att', 'iternal', 'carmanual', 'nvit', 'tcs', 'doc2dial', 'benefits']
+                # if args.task.lower() in valid_tasks or any([x in args.task.lower() for x in valid_tasks]):
+                if True:
                     max_target_len = args.out_seq_length
+                    query, _, neighbours = sample
+
                     # disable it for GPT for now
                     neighbours_array = pad_neighbours_for_query_only(args, [tokenizer.tokenize(neighbour) for neighbour in neighbours], tokenizer.eod, args.ft_neighbours)
-                    if args.ft_neighbours > 0:
-                        if args.shuffle_topn:
-                            import random
-                            random.seed(1234)
-                            random_neighbours = neighbours[0:args.ft_neighbours]
-                            random.shuffle(random_neighbours)
-                            neighbours = random_neighbours + neighbours[args.ft_neighbours:]
-                        if args.add_retriever: ## should be reverse order or not
-                            raw_text = "\n".join(neighbours[0:args.ft_neighbours][::-1]) + "\n" + raw_text
-                            raw_text = tokenizer.detokenize(tokenizer.tokenize(raw_text)[-(args.seq_length - max_target_len):])
-                        else:
-                            q_len = len(tokenizer.tokenize(raw_text))
-                            trun_neighbours = tokenizer.detokenize(tokenizer.tokenize("\n".join(neighbours[0:args.ft_neighbours]))[:(args.seq_length - max_target_len - q_len - 1)])
-                            raw_text = trun_neighbours + "\n" + raw_text
-                        ## to do: cut neighbours to max_len
+                    # print("neighbors", neighbours)
+                    # print("neighbours_array", neighbours_array)
+                    print("neighbours_array.shape", neighbours_array.shape)
+                    tokenizer = get_tokenizer()
+                    input_tokens = reformat_prompt_v2(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
+                    # input_tokens = reformat_prompt_v1(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
+                    raw_text = tokenizer.detokenize(input_tokens)
                     print(raw_text)
+                    # if args.ft_neighbours > 0:
+                        # if args.shuffle_topn:
+                        #     import random
+                        #     random.seed(1234)
+                        #     random_neighbours = neighbours[0:args.ft_neighbours]
+                        #     random.shuffle(random_neighbours)
+                        #     neighbours = random_neighbours + neighbours[args.ft_neighbours:]
+                        # if args.add_retriever: ## should be reverse order or not
+                        #     raw_text = "\n".join(neighbours[0:args.ft_neighbours][::-1]) + "\n" + raw_text
+                        #     raw_text = tokenizer.detokenize(tokenizer.tokenize(raw_text)[-(args.seq_length - max_target_len):])
+                        # else:
+                        #     q_len = len(tokenizer.tokenize(raw_text))
+                        #     trun_neighbours = tokenizer.detokenize(tokenizer.tokenize("\n".join(neighbours[0:args.ft_neighbours]))[:(args.seq_length - max_target_len - q_len - 1)])
+                        #     raw_text = trun_neighbours + "\n" + raw_text
+                        ## to do: cut neighbours to max_len
                 else:
                     raise ValueError("invalid arg for task")
                 sentences.append(raw_text)
