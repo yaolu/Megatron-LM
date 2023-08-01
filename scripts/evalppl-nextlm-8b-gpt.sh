@@ -3,7 +3,7 @@
 #SBATCH -p luna
 #SBATCH --nodes=1
 #SBATCH -A adlr
-#SBATCH -t 0:30:00
+#SBATCH -t 4:00:00
 #SBATCH --exclusive
 #SBATCH --job-name=adlr-nlp:retro-nextlm-gpt-8b-eval
 #SBATCH --ntasks-per-node=8
@@ -103,7 +103,7 @@ ARGS=" \
     --seq-length 4096 \
     --max-position-embeddings 4096 \
     --micro-batch-size 1 \
-    --global-batch-size 256 \
+    --global-batch-size 768 \
     --train-samples 25000000 \
     --lr-decay-samples 23750000 \
     --lr-warmup-samples 16667 \

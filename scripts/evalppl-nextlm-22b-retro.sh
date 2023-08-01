@@ -102,7 +102,7 @@ ARGS=" \
     --seq-length 4096 \
     --max-position-embeddings 4096 \
     --micro-batch-size 1 \
-    --global-batch-size 512 \
+    --global-batch-size 768 \
     --train-samples 25000000 \
     --lr-decay-samples 23750000 \
     --lr-warmup-samples 16667 \

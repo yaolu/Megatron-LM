@@ -82,7 +82,7 @@ if __name__ == "__main__":
     iter = 3000
     iter = 6000
     iter = 1500
-    iter = 4500
+    # iter = 4500
 
     prediction_file = ckpt_path + "/att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_generate_43b_test_greedy_0_250_1000_ret.txt.v2".format(
         n_ctx)
