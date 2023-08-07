@@ -30,9 +30,11 @@ def compute_f1_score(predicted_answers, groundtruth_answer, exp_name="default"):
     precision, recall, f1 = F1Metric.compute_all_pairs(guess_list, answer_list)
     print('Method: %s; Precision: %.4f; recall: %.4f; f1: %.4f' % ( \
         exp_name, precision, recall, f1))
+    return f1
 
 
 def load_groundtruth_file(data_file):
+    
     with open(data_file, "r") as f:
         nq_examples = json.load(f)
 
@@ -67,11 +69,10 @@ def evaluate_f1(ground_truth_file, prediction_file, reduced_test_only=False):
     groundtruth_answer = load_groundtruth_file(ground_truth_file)
     predicted_answers = load_prediction(prediction_file)
     if not reduced_test_only:
-        compute_f1_score(predicted_answers, groundtruth_answer)
-    groundtruth_answer, predicted_answers = groundtruth_answer[:43], predicted_answers[:43]
-    compute_f1_score(predicted_answers, groundtruth_answer)
-
-
+        return compute_f1_score(predicted_answers, groundtruth_answer)
+    # groundtruth_answer, predicted_answers = groundtruth_answer[:43], predicted_answers[:43]
+    # compute_f1_score(predicted_answers, groundtruth_answer)
+        
 if __name__ == "__main__":
     model_name = "sft_pp1_same_format_ctx1_43b_128_5e-6"
     model_name = "qa_blendv12_pp1_same_format_ctx1_43b_64_3e-7"
