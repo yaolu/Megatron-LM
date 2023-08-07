@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#SBATCH -p luna,interactive
+#SBATCH -p luna
 #SBATCH --nodes=1
 #SBATCH -A adlr
-#SBATCH -t 0:30:00
+#SBATCH -t 4:00:00
 #SBATCH --exclusive
-#SBATCH --job-name=adlr-nlp:retro-nextlm-gpt-2b-eval
+#SBATCH --job-name=adlr-nlp:retro-nextlm-22b-eval
 #SBATCH --ntasks-per-node=8
 #SBATCH --dependency=singleton
 
@@ -19,8 +19,8 @@
 # customize / begin.
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-ADD_RETRIEVER=0
-REPO_DIR="/lustre/fsw/adlr/adlr-nlp/boxinw/megatron-lm-pretrain"
+ADD_RETRIEVER=1
+REPO_DIR="/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm"
 CHECKPOINT_DIR="/lustre/fsw/adlr/adlr-nlp/boxinw/next-llm/pretrain-checkpoint"
 
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -57,7 +57,7 @@ then
   LOAD_DIR=$CHECKPOINT_DIR
   LOAD_OPTION="--no-load-optim --finetune"
 else
-  LOAD_DIR="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/nvllm-1.1t/checkpoints/gpt3-2b-multi-1.1t-gtc"
+  LOAD_DIR="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/nvllm-1.1t/checkpoints/gpt3-843m-multi-1.1t-gtc-llr"
   LOAD_OPTION="--no-load-optim --finetune"
 fi
 
@@ -75,9 +75,8 @@ echo $LOAD_DIR
 ######## args. ########
 
 
-TP=1
+TP=8
 ARGS=" \
-    --sequence-parallel \
     --recompute-activations \
     --use-flash-attn \
     --apply-layernorm-1p \
@@ -97,9 +96,9 @@ ARGS=" \
     --load ${LOAD_DIR} ${LOAD_OPTION} \
     --tensorboard-dir ${TENSORBOARD_DIR} \
     --log-validation-ppl-to-tensorboard \
-    --num-layers 24 \
-    --hidden-size 2048 \
-    --num-attention-heads 16 \
+    --num-layers 40 \
+    --hidden-size 6144 \
+    --num-attention-heads 48 \
     --seq-length 4096 \
     --max-position-embeddings 4096 \
     --micro-batch-size 1 \
@@ -107,8 +106,8 @@ ARGS=" \
     --train-samples 25000000 \
     --lr-decay-samples 23750000 \
     --lr-warmup-samples 16667 \
-    --lr 2e-5 \
-    --min-lr 2e-6 \
+    --lr 1e-5 \
+    --min-lr 1e-6 \
     --lr-decay-style cosine \
     --log-interval 100 \
     --eval-iters 32 \
@@ -129,6 +128,7 @@ ARGS=" \
     --bf16 \
     --DDP-impl local \
     --eval-ppl \
+    --retro-attention-gate 0 \
 "
 
 ######## retro. ########
@@ -157,7 +157,7 @@ echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 IMAGE="gitlab-master.nvidia.com/adlr/megatron-lm/lmcafee/retro-process-22.12"
 IMAGE="/lustre/fsw/adlr/adlr-nlp/boxinw/images/retrov2.sqsh"
 MOUNTS="/lustre/fsw/adlr:/lustre/fsw/adlr"
-srun -l \
+srun -l --export=ALL,PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
      --container-image $IMAGE \
      --container-mounts $MOUNTS \
      --output=$LOG_DIR/"%j_evalppl_${NAME}_r${ADD_RETRIEVER}.log" \

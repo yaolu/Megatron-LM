@@ -2,10 +2,10 @@
 
 #SBATCH -p luna,interactive
 #SBATCH --nodes=1
-#SBATCH -A adlr
+#SBATCH -A llmservice_nlp_fm
 #SBATCH -t 0:30:00
 #SBATCH --exclusive
-#SBATCH --job-name=adlr-nlp:retro-nextlm-gpt-2b-eval
+#SBATCH --job-name=llmservice_nlp_fm-retro:retro-nextlm-2b-eval
 #SBATCH --ntasks-per-node=8
 #SBATCH --dependency=singleton
 
@@ -19,8 +19,8 @@
 # customize / begin.
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-ADD_RETRIEVER=0
-REPO_DIR="/lustre/fsw/adlr/adlr-nlp/boxinw/megatron-lm-pretrain"
+ADD_RETRIEVER=1
+REPO_DIR="/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm"
 CHECKPOINT_DIR="/lustre/fsw/adlr/adlr-nlp/boxinw/next-llm/pretrain-checkpoint"
 
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -107,8 +107,8 @@ ARGS=" \
     --train-samples 25000000 \
     --lr-decay-samples 23750000 \
     --lr-warmup-samples 16667 \
-    --lr 2e-5 \
-    --min-lr 2e-6 \
+    --lr 2.5e-5 \
+    --min-lr 2.5e-6 \
     --lr-decay-style cosine \
     --log-interval 100 \
     --eval-iters 32 \
@@ -129,6 +129,7 @@ ARGS=" \
     --bf16 \
     --DDP-impl local \
     --eval-ppl \
+    --retro-attention-gate 0 \
 "
 
 ######## retro. ########
@@ -157,7 +158,7 @@ echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 IMAGE="gitlab-master.nvidia.com/adlr/megatron-lm/lmcafee/retro-process-22.12"
 IMAGE="/lustre/fsw/adlr/adlr-nlp/boxinw/images/retrov2.sqsh"
 MOUNTS="/lustre/fsw/adlr:/lustre/fsw/adlr"
-srun -l \
+srun -l --export=ALL,PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python \
      --container-image $IMAGE \
      --container-mounts $MOUNTS \
      --output=$LOG_DIR/"%j_evalppl_${NAME}_r${ADD_RETRIEVER}.log" \

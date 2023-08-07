@@ -480,6 +480,8 @@ def _add_retro_args(parser):
                        'database.')
     group.add_argument("--retro-return-doc-ids", action="store_true",
                        help="Turn this on when preprocessing retro data.")
+    group.add_argument("--retro-attention-gate", type=float, default=1,
+                       help="Gated cross attention.")
 
     # Enforce argument naming convention.
     for action in group._group_actions:

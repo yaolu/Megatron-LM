@@ -1017,7 +1017,8 @@ class ParallelTransformerLayer(MegatronModule):
                 layernorm_input,
                 (0, 0, 0, 0, pad, 0),
                 'constant', 0)[:ns] # [ns, b, d]
-            layernorm_input = layernorm_input + residual
+            args = get_args()
+            layernorm_input = args.retro_attention_gate * layernorm_input + residual
 
         # Layer norm post the decoder attention
         layernorm_output = self.post_inter_attention_layernorm(layernorm_input)

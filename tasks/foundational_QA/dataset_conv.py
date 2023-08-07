@@ -22,23 +22,27 @@ import numpy as np
 import glob
 from megatron import get_tokenizer, get_args
 
-def format_multichoice(multichoice_options):
 
-    options_text = ["({}) {}".format(chr(ord('A')+i), option) for i, option in zip(range(len(multichoice_options)), multichoice_options)]
+def format_multichoice(multichoice_options):
+    options_text = ["({}) {}".format(chr(ord('A') + i), option) for i, option in
+                    zip(range(len(multichoice_options)), multichoice_options)]
     return "Choose one based on the following options: {}".format(" ".join(options_text))
 
-def format_multichoice_question(question, multichoice_options):
 
-    return  "{}\n{}".format(question, format_multichoice(multichoice_options))
+def format_multichoice_question(question, multichoice_options):
+    return "{}\n{}".format(question, format_multichoice(multichoice_options))
+
 
 def format_answer(answer):
     return " {}".format(answer)
 
-"""GPT ft dataset."""
-def preprocess(data_file, inference_only=False, retrieved_neighbours=False, fix_newsqa=False):
 
+"""GPT ft dataset."""
+
+
+def preprocess(data_file, inference_only=False, retrieved_neighbours=False, fix_newsqa=False):
     args = get_args()
-    assert args.ft_neighbours > 0 
+    assert args.ft_neighbours > 0
     if args.longform_answer:
         nq_examples = []
         with open(data_file, "r") as f:
@@ -49,7 +53,7 @@ def preprocess(data_file, inference_only=False, retrieved_neighbours=False, fix_
         for my_data_file in sorted(glob.glob(data_file)):
             with open(my_data_file, "r", encoding='utf-8') as f:
                 nq_examples.extend(json.load(f))
-    
+
     data = []
     for instance in nq_examples:
         question = instance["question"]
@@ -61,7 +65,7 @@ def preprocess(data_file, inference_only=False, retrieved_neighbours=False, fix_
         else:
             if retrieved_neighbours:
                 contexts = instance["ctxs"]
-                neighbours = ["title: " + ctx["title"] + ", source: " + ctx["text"] for ctx in contexts] 
+                neighbours = ["title: " + ctx["title"] + ", source: " + ctx["text"] for ctx in contexts]
             else:
                 if "sub-paragraphs" in instance:
                     neighbours = ["title: , source: " + instance["sub-paragraphs"]]
@@ -105,17 +109,17 @@ def preprocess(data_file, inference_only=False, retrieved_neighbours=False, fix_
             for answer in answers:
                 answer = format_answer(answer)
                 data.append((question, answer, neighbours))
-    
+
     return data
 
-def eli5_preprocess(data_file):
 
+def eli5_preprocess(data_file):
     eli5_examples = []
     with open(data_file, "r") as f:
         lines = f.readlines()
         for line in lines:
             eli5_examples.append(json.loads(line))
-    
+
     data = []
     for i, d in enumerate(eli5_examples):
         if "output" not in d or "input" not in d:
@@ -124,20 +128,20 @@ def eli5_preprocess(data_file):
         neighbours = None
         question = d["input"]
         if "neighbours" in d:
-           neighbours = d["neighbours"]
+            neighbours = d["neighbours"]
 
         for item in d["output"]:
             if "answer" in item:
                 answer = item["answer"]
-                data.append((question, answer, neighbours))      
-            # if "provenance" in item:
+                data.append((question, answer, neighbours))
+                # if "provenance" in item:
             #     if len(item["provenance"]) > 1:
             #         print(i, "more than one")
             #     print("found provenance", item["provenance"], "\n")
     return data
 
-def get_processed_dataset(name, data_folder, processed=True, ratio=None, index=None, num_samples=None):
 
+def get_processed_dataset(name, data_folder, processed=True, ratio=None, index=None, num_samples=None):
     if name.lower() == 'eli5':
         if processed:
             training_file = data_folder + "/eli5-train-kilt-with-neighbours.jsonl"
@@ -162,12 +166,13 @@ def get_processed_dataset(name, data_folder, processed=True, ratio=None, index=N
         dataset["train"] = preprocess(training_file)
         dataset["valid"] = preprocess(validation_file)
         dataset["test"] = preprocess(validation_file)
-    
+
     print(name, "train", len(dataset["train"]))
     print(name, "valid", len(dataset["valid"]))
     print(name, "test", len(dataset["test"]))
 
     return dataset
+
 
 def count_stat(dataset, tokenizer):
     args = get_args()
@@ -181,13 +186,14 @@ def count_stat(dataset, tokenizer):
     print("num of cut ", sum([l > 128 for l in nb_lens]), sum([l > 128 for l in nb_lens]) // len(nb_lens))
     print("last max", sorted(nb_lens)[-10:])
 
+
 class FtDataset(torch.utils.data.Dataset):
 
-    def __init__(self, name, indexed_dataset, max_seq_length, 
+    def __init__(self, name, indexed_dataset, max_seq_length,
                  max_seq_length_dec=0):
 
         # Params to store.
-        self.dataset_name = name ## dataset_name equals to data_prefix in pretrain
+        self.dataset_name = name  ## dataset_name equals to data_prefix in pretrain
         self.max_seq_length = max_seq_length
 
         # Dataset.
@@ -201,6 +207,7 @@ class FtDataset(torch.utils.data.Dataset):
         self.args = get_args()
 
         # count_stat(indexed_dataset, tokenizer)
+
     def __len__(self):
         return len(list(self.indexed_dataset))
 
@@ -208,25 +215,25 @@ class FtDataset(torch.utils.data.Dataset):
 
         idx = idx % len(self.indexed_dataset)
         sample = self.indexed_dataset[idx]
-       
+
         if self.args.add_retriever:
             return build_retro_training_sample(sample,
-                                self.max_seq_length,  # needed for padding
-                                self.pad_id, self.eos_id,
-                                self.dataset_name,
-                                self.args.ft_neighbours,
-                                self.args.shuffle_topn)
+                                               self.max_seq_length,  # needed for padding
+                                               self.pad_id, self.eos_id,
+                                               self.dataset_name,
+                                               self.args.ft_neighbours,
+                                               self.args.shuffle_topn)
         else:
             return build_normal_training_sample_v2(sample,
-                                self.max_seq_length,  # needed for padding
-                                self.pad_id, self.eos_id,
-                                self.dataset_name,
-                                self.args.ft_neighbours,
-                                self.args.shuffle_topn)
+                                                   self.max_seq_length,  # needed for padding
+                                                   self.pad_id, self.eos_id,
+                                                   self.dataset_name,
+                                                   self.args.ft_neighbours,
+                                                   self.args.shuffle_topn)
+
 
 def reformat_prompt_v1(query, neighbours, dataset_name, ft_neighbours, \
-    max_output_len, tokenizer, max_seq_length):
-
+                       max_output_len, tokenizer, max_seq_length):
     system = "System: This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\n"
 
     if dataset_name in ["oasst", "quiet_cockatoo"]:
@@ -237,16 +244,22 @@ def reformat_prompt_v1(query, neighbours, dataset_name, ft_neighbours, \
     short_span_with_context = ["drop", "NarrativeQA", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq"]
     yes_no_without_context = ["BoolQ"]
     multichoices = [""]
+    formatted_dataset_name = ["doc2dial"]
     user_template = ""
-    if dataset_name in short_span_with_context:
-        user = "{} Answer the above question with a short phrase.".format(query)
-    elif dataset_name in yes_no_without_context:
-        user = "{} Answer the above question with True or False.".format(query)
-    else:
-        user = "{} Answer the above question with a long complete answer.".format(query)
 
-    dialogue_format="User: {}\n\nAssistant:"
-    dialogue_turn = dialogue_format.format(user)
+    ## fix bug format for formatted text, no change
+    if dataset_name in formatted_dataset_name:
+        dialogue_turn = query
+    else:
+        if dataset_name in short_span_with_context:
+            user = "{} Answer the above question with a short phrase.".format(query)
+        elif dataset_name in yes_no_without_context:
+            user = "{} Answer the above question with True or False.".format(query)
+        else:
+            user = "{} Answer the above question with a long complete answer.".format(query)
+
+        dialogue_format = "User: {}\n\nAssistant:"
+        dialogue_turn = dialogue_format.format(user)
 
     if ft_neighbours > 0:
         # if shuffle_topn:
@@ -271,11 +284,11 @@ def reformat_prompt_v1(query, neighbours, dataset_name, ft_neighbours, \
 
     # print(dataset_name, all_input)
 
-    return  input_tokens
+    return input_tokens
+
 
 def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
-    max_output_len, tokenizer, max_seq_length):
-
+                       max_output_len, tokenizer, max_seq_length):
     system = "System: This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\n"
 
     if dataset_name in ["oasst", "quiet_cockatoo"]:
@@ -326,27 +339,27 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
 
     # print(dataset_name, all_input)
 
-    return  input_tokens
+    return input_tokens
+
 
 def build_normal_training_sample_v2(sample,
-                          max_seq_length,
-                          pad_id,
-                          eos_id,
-                          dataset_name,
-                          ft_neighbours=1,
-                          shuffle_topn=False):
-
+                                    max_seq_length,
+                                    pad_id,
+                                    eos_id,
+                                    dataset_name,
+                                    ft_neighbours=1,
+                                    shuffle_topn=False):
     # unpack tokens
     query, answer, neighbours = sample
-    
-    
+
     # tokenization
     tokenizer = get_tokenizer()
     output_tokens = tokenizer.tokenize(answer)
 
-    input_tokens = reformat_prompt_v1(query, neighbours, dataset_name, ft_neighbours, len(output_tokens), tokenizer, max_seq_length)
+    input_tokens = reformat_prompt_v1(query, neighbours, dataset_name, ft_neighbours, len(output_tokens), tokenizer,
+                                      max_seq_length)
     # print(answer)
-    
+
     # print(repr(tokenizer.detokenize(input_tokens)), repr(tokenizer.detokenize(output_tokens)), dataset_name)
     # Padding
     tokens, answer_mask \
@@ -361,18 +374,18 @@ def build_normal_training_sample_v2(sample,
 
 
 def build_retro_training_sample(sample,
-                          max_seq_length,
-                          pad_id,
-                          eos_id,
-                          dataset_name,
-                          ft_neighbours=1):
+                                max_seq_length,
+                                pad_id,
+                                eos_id,
+                                dataset_name,
+                                ft_neighbours=1):
     """Build training sample for retro NQ.
     """
 
     # unpack tokens
     query, answer, neighbours = sample
     assert neighbours is not None
-    
+
     # tokenization
     tokenizer = get_tokenizer()
     input_tokens = tokenizer.tokenize(query)
@@ -383,13 +396,16 @@ def build_retro_training_sample(sample,
 
     if dataset_name == 'eli5':
         # print(len(output_tokens), args.m, num_samples, len(c_answers))
-        nb_tokens = [[tokenizer.tokenize(dpr_neighhour_i) for dpr_neighhour_i in dpr_neighbour] for dpr_neighbour in neighbours]
+        nb_tokens = [[tokenizer.tokenize(dpr_neighhour_i) for dpr_neighhour_i in dpr_neighbour] for dpr_neighbour in
+                     neighbours]
     else:
         if args.question_in_encoder:
-            neighbours = ["question: {}, ".format(query) + neighbour if i >= ft_neighbours else neighbour for i, neighbour in enumerate(neighbours)]
+            neighbours = ["question: {}, ".format(query) + neighbour if i >= ft_neighbours else neighbour for
+                          i, neighbour in enumerate(neighbours)]
             nb_tokens = [tokenizer.tokenize(neighbour) for neighbour in neighbours]
         if args.prefix:
-            neighbours = ["Evidence {} ".format(i) + neighbour if i >= ft_neighbours else neighbour for i, neighbour in enumerate(neighbours)]
+            neighbours = ["Evidence {} ".format(i) + neighbour if i >= ft_neighbours else neighbour for i, neighbour in
+                          enumerate(neighbours)]
             # print(neighbours[0])
             nb_tokens = [tokenizer.tokenize(neighbour) for neighbour in neighbours]
         else:
@@ -431,8 +447,8 @@ def build_retro_training_sample(sample,
     #     neighbours_tokens.append(nb_token)
     # if len(neighbours_tokens) < args.k:
     #     assert ValueError("neighbours are not enough, to do: add empty ones and create mask for those empty ones")
-    # neighbours_tokens = np.array(neighbours_tokens).reshape(1, args.k, args.r).repeat(args.seq_length / args.m, axis=0) ## dim (l, k, r) 
-    
+    # neighbours_tokens = np.array(neighbours_tokens).reshape(1, args.k, args.r).repeat(args.seq_length / args.m, axis=0) ## dim (l, k, r)
+
     train_sample = {
         'text': tokens,
         'answer_mask': answer_mask,
@@ -442,7 +458,6 @@ def build_retro_training_sample(sample,
 
 
 def left_pad_question(args, input_tokens, pad_id):
-
     ## up padding to nearest m times n
     padded_len = args.m * (int((len(input_tokens) - 0.5) / args.m) + 1)
     left_pad_len = padded_len - len(input_tokens)
@@ -450,40 +465,41 @@ def left_pad_question(args, input_tokens, pad_id):
     input_tokens = [pad_id] * left_pad_len + input_tokens
     return input_tokens
 
-def pad_neighbours_for_query_only(args, nb_tokens, pad_id, ft_neighbours):
 
+def pad_neighbours_for_query_only(args, nb_tokens, pad_id, ft_neighbours):
     # take top k neighbours and padding
     neighbours_tokens = []
-    
+
     if args.reuse_top:
         valid_nb_tokens = nb_tokens[:args.k]
     else:
-        valid_nb_tokens = nb_tokens[ft_neighbours:args.k+ft_neighbours]
+        valid_nb_tokens = nb_tokens[ft_neighbours:args.k + ft_neighbours]
 
     for nb_token in valid_nb_tokens:
-        if len(nb_token) >= args.r: 
+        if len(nb_token) >= args.r:
             # print("max len is {}, and the current one is {}".format(args.r, len(nb_token)))
             nb_token = nb_token[:args.r]
         else:
-            nb_token =  nb_token + [pad_id] * (args.r - len(nb_token))
+            nb_token = nb_token + [pad_id] * (args.r - len(nb_token))
         neighbours_tokens.append(nb_token)
     if len(neighbours_tokens) < args.k:
         assert ValueError("neighbours are not enough, to do: add empty ones and create mask for those empty ones")
-    neighbours_tokens = np.array(neighbours_tokens).reshape(1, args.k, args.r).repeat(args.seq_length / args.m, axis=0) ## dim (l, k, r)
+    neighbours_tokens = np.array(neighbours_tokens).reshape(1, args.k, args.r).repeat(args.seq_length / args.m,
+                                                                                      axis=0)  ## dim (l, k, r)
     return neighbours_tokens
 
-def pad_neighbours_for_q_and_a(args, nb_tokens, pad_id):
 
+def pad_neighbours_for_q_and_a(args, nb_tokens, pad_id):
     # take top k neighbours and padding
     neighbours_tokens = []
     for nb_tokens_i in nb_tokens:
         neighbour_i_tokens = []
-        assert len(nb_tokens_i) == args.k ## top k retreived neighours
+        assert len(nb_tokens_i) == args.k  ## top k retreived neighours
         for nb_token in nb_tokens_i:
             if len(nb_token) >= args.r:
                 nb_token = nb_token[:args.r]
             else:
-                nb_token =  nb_token + [pad_id] * (args.r - len(nb_token))
+                nb_token = nb_token + [pad_id] * (args.r - len(nb_token))
             neighbour_i_tokens.append(nb_token)
         neighbours_tokens.append(neighbour_i_tokens)
     neighbours_tokens = np.array(neighbours_tokens)
@@ -491,15 +507,17 @@ def pad_neighbours_for_q_and_a(args, nb_tokens, pad_id):
     # dim (l, k, r)
     l = int(args.seq_length / args.m)
     if neighbours_tokens.shape[0] < l:
-        neighbours_tokens = np.concatenate([neighbours_tokens, 
-        neighbours_tokens[-1:].repeat(l - neighbours_tokens.shape[0], axis=0)], axis=0)
+        neighbours_tokens = np.concatenate([neighbours_tokens,
+                                            neighbours_tokens[-1:].repeat(l - neighbours_tokens.shape[0], axis=0)],
+                                           axis=0)
     else:
         neighbours_tokens = neighbours_tokens[:l]
-    
+
     return neighbours_tokens
 
+
 def pad_and_convert_to_numpy(input_ids, output_ids,
-                             pad_id, max_seq_length, 
+                             pad_id, max_seq_length,
                              eos_id):
     """Pad sequences and convert them to numpy."""
     if len(input_ids) > max_seq_length:
@@ -511,7 +529,7 @@ def pad_and_convert_to_numpy(input_ids, output_ids,
     tokens = input_ids + output_ids
     answer_mask = [0] * len(input_ids) + [1] * len(output_ids)
 
-    #padding
+    # padding
     num_tokens = len(tokens)
     padding_length = max_seq_length - num_tokens
     assert padding_length >= 0
