@@ -18,7 +18,7 @@ import numpy as np
 import torch
 from megatron.core import mpu
 from megatron import print_rank_0, get_retro_args, get_args
-from .communication import broadcast_float_list
+from .communication import broadcast_float_list, broadcast_tensor
 from .generation import (
     generate_tokens_probs_and_return_on_first_stage,
     score_and_return_on_first_stage)
@@ -130,7 +130,12 @@ def retro_generate(model,
     context_tokens_tensor, context_length_tensor = tokenize_prompts(
         prompts=prompts, tokens_to_generate=tokens_to_generate, add_BOS=add_BOS)
     # print_rank_0(context_tokens_tensor)
-    # print_rank_0(context_length_tensor)
+    print_rank_0("context_length_tensor:")
+    print_rank_0(context_length_tensor)
+
+    retro_args = get_retro_args()
+    retro_args.retro_gpt_chunk_length = context_length_tensor.item()
+    print("retro_args.retro_gpt_chunk_length", retro_args.retro_gpt_chunk_length)
 
     retro_args = get_retro_args()
     args = get_args()

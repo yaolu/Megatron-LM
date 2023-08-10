@@ -6,7 +6,7 @@
 import torch
 
 
-from megatron import get_tokenizer, get_args
+from megatron import get_tokenizer, get_args, get_retro_args
 from .communication import broadcast_int_list, broadcast_tensor
 
 
@@ -110,6 +110,12 @@ def _tokenize_prompts_and_batch(prompts, tokens_to_generate, add_BOS):
     prompts_length = [len(prompt_tokens) for prompt_tokens in prompts_tokens]
     # Get the max prompts length.
     max_prompt_len = max(prompts_length)
+
+    ## hard code tokens to generate
+    args = get_args()
+    if args.retro_add_retriever:
+        tokens_to_generate = max_prompt_len
+
     # Number of tokens in the each sample of the batch.
     samples_length = max_prompt_len + tokens_to_generate
     # Now update the list of list to be of the same size: samples_length.

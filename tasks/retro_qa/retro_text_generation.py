@@ -15,9 +15,12 @@
 
 """Sample Generate GPT"""
 import json
+import types
+
 import torch
 import os
 import sys
+
 
 sys.path.append(os.path.abspath(os.path.join(
     os.path.join(os.path.dirname(__file__), os.path.pardir), os.path.pardir)))
@@ -35,7 +38,8 @@ from main import get_tasks_args
 from dataset import preprocess, pad_neighbours_for_query_only
 import numpy as np
 import time
-# from tasks.prompt_learning.task_datasets import e2e_format_query, xsum_format_s
+from megatron.global_vars import set_retro_args
+from megatron.arguments import _print_args
 
 def model_provider(pre_process=True, post_process=True):
     """Build the model."""
@@ -99,6 +103,8 @@ def add_text_generate_args(parser):
                         help='setting ckpt step manually')
     group.add_argument("--short-format", action='store_true',
                        help='Use short format QA')
+    group.add_argument("--retro-gen-chunk-length", type=int, default=64,
+                       help="GPT chunk length in generation.")
     return parser
 
 def generate_samples_conditional(model):
@@ -249,6 +255,14 @@ def main():
     model = get_model(model_provider, wrap_with_ddp=False)
     print(model)
     args = get_args()
+
+    # overwrite args in retro workdir in generation
+    retro_args = get_retro_args()
+    retro_args.retro_gpt_chunk_length = args.retro_gen_chunk_length
+    retro_args.retro_gpt_retrieved_length = 128  # hard code
+    set_retro_args(retro_args)
+    if retro_args and args != retro_args:
+        _print_args("retro arguments", types.SimpleNamespace(**{k:v for k,v in vars(retro_args).items() if k.startswith("retro")}, rank=args.rank))
 
     if args.load is not None:
         _ = load_checkpoint(model, None, None)

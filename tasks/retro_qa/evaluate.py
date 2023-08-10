@@ -189,6 +189,21 @@ if __name__ == "__main__":
     # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-2b-pretraining-retro-fitting/generate_2b_test_greedy_0_400_97656.concat.txt.period.txt"
     # evaluate_ems(prediction_file, ground_truth_file)
 
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-2b-pretraining-retro-fitting//chunk_1k_generate_nq_2b_test_greedy_0_400_97656.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
+
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed//chunk_1k_generate_nq_43b_test_greedy_0_400_32000.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
+    #
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed//chunk_1k_generate_nq_43b_test_greedy_0_400_32552.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-2b-pretraining-retro-fitting//gate_0_chunk_1k_generate_nq_2b_test_greedy_0_400_97656.concat.txt.period.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+    #
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed//gate_0_chunk_1k_generate_nq_43b_test_greedy_0_400_32000.concat.txt.period.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
     # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-multi-1.1t-gtc/generate_8b_test_greedy_0_400_1417624.concat.txt.period.txt"
     # evaluate_ems(prediction_file, ground_truth_file)
     #
@@ -262,14 +277,14 @@ if __name__ == "__main__":
     #
     # ## 8B
     #
-    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-multi-1.1t-gtc/generate_tqa_8b_test_greedy_0_1100_1417624.concat.txt.period.txt"
-    evaluate_ems(prediction_file, ground_truth_file)
-
-    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-gpt-fitting/generate_tqa_8b_test_greedy_0_1100_97656.concat.txt.period.txt"
-    evaluate_ems(prediction_file, ground_truth_file)
-
-    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-noseqpar/generate_tqa_8b_test_greedy_0_1100_97656.concat.txt.period.txt"
-    evaluate_ems(prediction_file, ground_truth_file)
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-multi-1.1t-gtc/generate_tqa_8b_test_greedy_0_1100_1417624.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
+    #
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-gpt-fitting/generate_tqa_8b_test_greedy_0_1100_97656.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
+    #
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-noseqpar/generate_tqa_8b_test_greedy_0_1100_97656.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
     #
     # ## 22B
     #
@@ -279,8 +294,8 @@ if __name__ == "__main__":
     # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-22b-pretraining-gpt-fitting/generate_tqa_22b_test_greedy_0_1100_48828.concat.txt.period.txt"
     # evaluate_ems(prediction_file, ground_truth_file)
 
-    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-22b-pretraining-retro-fitting-noseqpar/generate_tqa_22b_test_greedy_0_550_48828.concat.txt.period.txt"
-    evaluate_ems(prediction_file, ground_truth_file)
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-22b-pretraining-retro-fitting-noseqpar/generate_tqa_22b_test_greedy_0_550_48828.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
 
     # ## 43B
 

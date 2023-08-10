@@ -880,8 +880,8 @@ class ParallelTransformerLayer(MegatronModule):
 
             # Attention.
             chunked_output = chunked_outputs[:,:,k].contiguous()
-            # print("E", chunked_output.shape)
-
+            # print("chunked_output", chunked_output.shape)
+            # print("retriever_output", retriever_output.shape)
 
             attention_output, attention_bias = \
                 self.inter_attention(
@@ -1032,6 +1032,13 @@ class ParallelTransformerLayer(MegatronModule):
                 retriever_attn_mask=None,
                 inference_params=None,
                 rotary_pos_emb=None):
+
+        args = get_args()
+        if args.retro_add_retriever:
+            retro_args = get_retro_args()
+            self.retro_num_neighbors = args.retro_num_neighbors
+            self.retro_chunk_length = retro_args.retro_gpt_chunk_length
+            self.retro_retrieved_length = retro_args.retro_gpt_retrieved_length
         # hidden_states: [s, b, h]
 
         # Layer norm at the beginning of the transformer layer.

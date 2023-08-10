@@ -57,7 +57,8 @@ fi
 #    DATA_FOLDER="${DATA_HOME}/data/att/$TASK"
 #fi
 
-QA_HOME="/lustre/fsw/adlr/adlr-nlp/boxinw/nvllm-qa"
+#QA_HOME="/lustre/fsw/adlr/adlr-nlp/boxinw/nvllm-qa"
+QA_HOME="/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm"
 MOUNTS="/lustre/fsw/adlr/adlr-nlp/"
 PARTITION="luna"
 LAUNCH="${ADLR_UTILS}/mp_launch"

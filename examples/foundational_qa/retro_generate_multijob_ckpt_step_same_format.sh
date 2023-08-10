@@ -79,7 +79,7 @@ export NCCL_IB_TIMEOUT=19
 export NCCL_IB_SL=1
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
-QA_HOME="/lustre/fsw/adlr/adlr-nlp/boxinw/nvllm-qa"
+QA_HOME="/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm"
 MOUNTS="/lustre/fsw/adlr/adlr-nlp/"
 PARTITION="luna"
 LAUNCH="${ADLR_UTILS}/mp_launch"

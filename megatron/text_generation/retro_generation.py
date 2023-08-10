@@ -251,6 +251,8 @@ def retro_generate_tokens_probs_and_return_on_first_stage(
     batch_size = tokens.size(0)
     min_prompt_length = lengths.min().item()
     max_sequence_length = tokens.size(1)
+    print("max_sequence_length", max_sequence_length)
+    print("min_prompt_length", min_prompt_length)
     max_sequence_length = min(max_sequence_length, args.max_position_embeddings)
 
     # If the context is too big, this happens
