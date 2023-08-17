@@ -40,10 +40,10 @@ if [[ $model_size == "43b" ]]; then
     layers=48
     hid_dim=8192
     heads=64
-    pip_par=4
-    if [[ $model_card == *pp1* ]]; then
-        pip_par=1
-    fi
+#    pip_par=4
+#    if [[ $model_card == *pp1* ]]; then
+    pip_par=1
+#    fi
 fi
 
 #if [[ $model_size == "43b" ]]; then
@@ -113,4 +113,5 @@ FT_ARGS="--eod-mask-loss \
 # fi
 
 DOCKER="gitlab-master.nvidia.com/adlr/megatron-lm/pytorch:22.04-py3-eval"
+DOCKER="/lustre/fsw/adlr/adlr-nlp/boxinw/images/retrov2.sqsh"
 #DOCKER="gitlab-master.nvidia.com/adlr/megatron-lm/pytorch:22.12-py3-eval"

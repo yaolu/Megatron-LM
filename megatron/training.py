@@ -145,7 +145,6 @@ def pretrain(train_valid_test_dataset_provider,
     iteration = 0
 
     if args.dataloader_type == 'cyclic' and args.retro_add_retriever:
-        args.train_iters = args.retro_cyclic_train_iters
         print_rank_0("retro cyclic train iters : %d" % args.train_iters)
 
     if args.eval_ppl:

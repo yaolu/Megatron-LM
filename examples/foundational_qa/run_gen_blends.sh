@@ -57,9 +57,9 @@ model_name=qa_blendv12_pp1_same_format_ctx1_43b_64_3e-7
 #bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved 43b greedy test  0 250 3000 $num_ctxs $model_name true
 #bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh inference_input_retriever_dragon_msmarcominilm_doc2dial 43b greedy test 0 250 3000 $num_ctxs $model_name true
 #bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh NVIT_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved 43b greedy test 0 250 3000 $num_ctxs $model_name true
-bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh nv_benefits_dragon_retriever300_retrieved_generic 43b greedy test 0 250 3000 $num_ctxs $model_name true
-bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved 43b greedy test 0 250 3000 $num_ctxs $model_name true
-bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh Iternal_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved 43b greedy test 0 250 3000 $num_ctxs $model_name true
+#bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh nv_benefits_dragon_retriever300_retrieved_generic 43b greedy test 0 250 3000 $num_ctxs $model_name true
+#bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved 43b greedy test 0 250 3000 $num_ctxs $model_name true
+#bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh Iternal_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved 43b greedy test 0 250 3000 $num_ctxs $model_name true
 #
 #bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh nq 43b greedy test  0 200 6000 $num_ctxs $model_name true
 #bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved 43b greedy test  0 250 6000 $num_ctxs $model_name true
@@ -88,4 +88,4 @@ bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_
 #bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved 43b greedy test 0 250 1500 $num_ctxs $model_name true
 #bash examples/foundational_qa/generate_multijob_ckpt_step_same_format_cross_fqa_conv.sh Iternal_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved 43b greedy test 0 250 1500 $num_ctxs $model_name true
 
-#bash examples/foundational_qa/retro_generate_multijob_ckpt_step_same_format_reuse.sh nq 43b greedy test  32 1e-6  0 200 32552 2 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
+#bash examples/foundational_qa/retro_generate_multijob_ckpt_step_same_format_reuse_flex.sh nq 43b greedy test  32 1e-6  0 200 32552 2 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2

@@ -20,7 +20,7 @@ import os
 import torch
 import numpy as np
 import glob
-from megatron import get_tokenizer, get_args
+from megatron import get_tokenizer, get_args, get_retro_args
 
 
 def format_multichoice(multichoice_options):
@@ -195,6 +195,7 @@ class FtDataset(torch.utils.data.Dataset):
         # Params to store.
         self.dataset_name = name  ## dataset_name equals to data_prefix in pretrain
         self.max_seq_length = max_seq_length
+        self.desc = name
 
         # Dataset.
         self.indexed_dataset = indexed_dataset
@@ -216,8 +217,8 @@ class FtDataset(torch.utils.data.Dataset):
         idx = idx % len(self.indexed_dataset)
         sample = self.indexed_dataset[idx]
 
-        if self.args.add_retriever:
-            return build_retro_training_sample(sample,
+        if self.args.retro_add_retriever:
+            return build_retro_training_sample_v2(sample,
                                                self.max_seq_length,  # needed for padding
                                                self.pad_id, self.eos_id,
                                                self.dataset_name,
@@ -369,6 +370,46 @@ def build_normal_training_sample_v2(sample,
     train_sample = {
         'text': tokens,
         'answer_mask': answer_mask,
+    }
+    return train_sample
+
+def build_retro_training_sample_v2(sample,
+                                    max_seq_length,
+                                    pad_id,
+                                    eos_id,
+                                    dataset_name,
+                                    ft_neighbours=1,
+                                    shuffle_topn=False):
+    # unpack tokens
+    query, answer, neighbours = sample
+
+    # tokenization
+    tokenizer = get_tokenizer()
+    output_tokens = tokenizer.tokenize(answer)
+
+    input_tokens = reformat_prompt_v1(query, neighbours, dataset_name, ft_neighbours, len(output_tokens), tokenizer,
+                                      max_seq_length)
+    # print(answer)
+
+    # print(repr(tokenizer.detokenize(input_tokens)), repr(tokenizer.detokenize(output_tokens)), dataset_name)
+    # Padding
+    tokens, answer_mask \
+        = pad_and_convert_to_numpy(input_tokens, output_tokens,
+                                   pad_id, max_seq_length, eos_id)
+
+    # get retro neighbors
+    args = get_args()
+    retro_args = get_retro_args()
+    n_chunks_per_sample = 2
+    num_neighbors = args.retro_num_neighbors
+    neighbor_tokens = np.zeros([n_chunks_per_sample, num_neighbors, retro_args.retro_gpt_retrieved_length], dtype=np.int64)
+    # print("neighbor_tokens.shape", neighbor_tokens.shape)
+
+    train_sample = {
+        'text': tokens,
+        'answer_mask': answer_mask,
+        'neighbor_tokens': neighbor_tokens,
+        'context_len': len(input_tokens)
     }
     return train_sample
 

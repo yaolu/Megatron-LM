@@ -112,5 +112,4 @@ FT_ARGS="--eod-mask-loss \
 #     GPT_ARGS=" ${GPT_ARGS} ${ARGS_43B}"
 # fi
 
-DOCKER="gitlab-master.nvidia.com/adlr/megatron-lm/pytorch:22.04-py3-eval"
-#DOCKER="gitlab-master.nvidia.com/adlr/megatron-lm/pytorch:22.12-py3-eval"
+DOCKER="/lustre/fsw/adlr/adlr-nlp/boxinw/images/retrov2.sqsh"

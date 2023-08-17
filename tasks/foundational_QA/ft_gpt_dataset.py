@@ -48,6 +48,11 @@ def build_train_valid_test_datasets(data_prefix, data_impl, splits_string,
         train_datasets = []
         valid_datasets = []
         test_datasets = []
+
+        train_size = 0
+        valid_size = 0
+        test_size = 0
+
         for i in range(len(prefixes)):
             train_ds, valid_ds, test_ds = _build_train_valid_test_datasets(
                 prefixes[i], data_impl, splits_string,
@@ -56,21 +61,24 @@ def build_train_valid_test_datasets(data_prefix, data_impl, splits_string,
                 return_doc_ids)
             if train_ds:
                 train_datasets.append(train_ds)
+                train_size += len(train_ds)
             if valid_ds:
                 valid_datasets.append(valid_ds)
+                valid_size += len(valid_ds)
             if test_ds:
                 test_datasets.append(test_ds)
+                test_size += len(test_ds)
 
         # Blend.
         blending_train_dataset = None
         if train_datasets:
-            blending_train_dataset = BlendableDataset(train_datasets, weights)
+            blending_train_dataset = BlendableDataset(train_datasets, weights, train_size)
         blending_valid_dataset = None
         if valid_datasets:
-            blending_valid_dataset = BlendableDataset(valid_datasets, weights)
+            blending_valid_dataset = BlendableDataset(valid_datasets, weights, valid_size)
         blending_test_dataset = None
         if test_datasets:
-            blending_test_dataset = BlendableDataset(test_datasets, weights)
+            blending_test_dataset = BlendableDataset(test_datasets, weights, test_size)
 
         return (blending_train_dataset, blending_valid_dataset,
                 blending_test_dataset)

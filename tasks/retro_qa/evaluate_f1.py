@@ -76,11 +76,12 @@ if __name__ == "__main__":
     model_name = "gpt3-43b-multi-1.1t-gtc/tp8pp1"
     model_name = "gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed"
     # model_name = "gpt3-43b-pretraining-gpt-fitting-tp8pp1"
+    model_name = "retro-sft_pp1_same_format_ctx1_43b_128_5e-6"
     ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/{}/".format(model_name)
+    ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/{}/".format(model_name)
     n_ctx = 5
     n_enc = 2
-    iter = 32552
-
+    iter = 1000
 
 
     prediction_file = ckpt_path + "/generate_att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_43b_test_greedy_0_250_472541.txt"
@@ -94,6 +95,8 @@ if __name__ == "__main__":
 
     # prediction_file = ckpt_path + "/foundational_qa_att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_5_2_43b_test_greedy_0_250_32552.txt"
     # prediction_file = ckpt_path + "/reuse_foundational_qa_att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_reuse_foundational_qa_att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/data/att/att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved/test.json"
     print(prediction_file)
     print(ground_truth_file)
@@ -110,6 +113,8 @@ if __name__ == "__main__":
 
     # prediction_file = ckpt_path + "/foundational_qa_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_5_2_43b_test_greedy_0_250_32552.txt"
     # prediction_file = ckpt_path + "/reuse_foundational_qa_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_reuse_foundational_qa_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved/test.json"
     print(prediction_file)
     print(ground_truth_file)
@@ -127,6 +132,8 @@ if __name__ == "__main__":
 
     # prediction_file = ckpt_path + "/foundational_qa_nq_5_2_43b_test_greedy_0_200_32552.txt"
     # prediction_file = ckpt_path + "/reuse_foundational_qa_nq_{}_{}_43b_test_greedy_0_200_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_reuse_foundational_qa_nq_{}_{}_43b_test_greedy_0_200_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_nq_{}_{}_43b_test_greedy_0_200_{}.txt".format(n_ctx, n_enc, iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/NQ/test.json"
     print(prediction_file)
     print(ground_truth_file)
@@ -144,6 +151,8 @@ if __name__ == "__main__":
 
     # prediction_file = ckpt_path + "foundational_qa_nv_benefits_dragon_retriever300_retrieved_generic_5_2_43b_test_greedy_0_250_32552.txt"
     # prediction_file = ckpt_path + "reuse_foundational_qa_nv_benefits_dragon_retriever300_retrieved_generic_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "flex_reuse_foundational_qa_nv_benefits_dragon_retriever300_retrieved_generic_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "flex_gate_0_reuse_foundational_qa_nv_benefits_dragon_retriever300_retrieved_generic_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/nv_benefits_dragon_retriever300_retrieved_generic/test.json"
     print(prediction_file)
     print(ground_truth_file)
@@ -161,6 +170,8 @@ if __name__ == "__main__":
 
     # prediction_file = ckpt_path + "/foundational_qa_NVIT_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_5_2_43b_test_greedy_0_250_32552.txt"
     # prediction_file = ckpt_path + "/reuse_foundational_qa_NVIT_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_reuse_foundational_qa_NVIT_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_NVIT_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/NVIT_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved/test.json"
     print(prediction_file)
     print(ground_truth_file)
@@ -178,6 +189,8 @@ if __name__ == "__main__":
 
     # prediction_file = ckpt_path + "foundational_qa_Iternal_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_5_2_43b_test_greedy_0_250_32552.txt"
     # prediction_file = ckpt_path + "reuse_foundational_qa_Iternal_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "flex_reuse_foundational_qa_Iternal_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "flex_gate_0_reuse_foundational_qa_Iternal_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/Iternal_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved/test.json"
     print(prediction_file)
     print(ground_truth_file)
@@ -195,6 +208,8 @@ if __name__ == "__main__":
     # prediction_file = ckpt_path + "/generate_landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_43b_test_greedy_0_250_32552.txt"
     # prediction_file = ckpt_path + "/foundational_qa_landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_5_2_43b_test_greedy_0_250_32552.txt"
     # prediction_file = ckpt_path + "/reuse_foundational_qa_landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_reuse_foundational_qa_landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved/test.json"
     print(prediction_file)
     print(ground_truth_file)
@@ -211,6 +226,8 @@ if __name__ == "__main__":
 
     # prediction_file = ckpt_path + "/foundational_qa_inference_input_retriever_dragon_msmarcominilm_doc2dial_5_2_43b_test_greedy_0_250_32552.txt"
     # prediction_file = ckpt_path + "/reuse_foundational_qa_inference_input_retriever_dragon_msmarcominilm_doc2dial_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_reuse_foundational_qa_inference_input_retriever_dragon_msmarcominilm_doc2dial_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_inference_input_retriever_dragon_msmarcominilm_doc2dial_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/inference_input_retriever_dragon_msmarcominilm_doc2dial/test.json"
     print(prediction_file)
     print(ground_truth_file)

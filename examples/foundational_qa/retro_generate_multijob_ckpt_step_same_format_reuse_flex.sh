@@ -29,7 +29,7 @@ fi
 #SAVENAME="${TASK}_${model_card}_same_format_ctx${ft_neighbours}_${model_size}_${global_bsz}_${lr}"
 #CHECKPOINT_PATH="${QA_HOME}/checkpoints/applications/${SAVENAME}"
 CHECKPOINT_PATH=${ckpt}
-sample_output_file="${CHECKPOINT_PATH}/reuse_foundational_qa_${TASK}_${ft_neighbours}_${K}_${model_size}_${split}_${sampling}_${gen_start}_${num_gen}_${ckpt_step}.txt"
+sample_output_file="${CHECKPOINT_PATH}/flex_reuse_foundational_qa_${TASK}_${ft_neighbours}_${K}_${model_size}_${split}_${sampling}_${gen_start}_${num_gen}_${ckpt_step}.txt"
 
 DIR=`pwd`
 
@@ -80,11 +80,10 @@ export NCCL_IB_TIMEOUT=19
 export NCCL_IB_SL=1
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
-QA_HOME="/lustre/fsw/adlr/adlr-nlp/boxinw/nvllm-qa"
 MOUNTS="/lustre/fsw/adlr/adlr-nlp/"
 PARTITION="luna"
 LAUNCH="${ADLR_UTILS}/mp_launch"
 
-submit_job --gpu ${mod_par} --nodes ${pip_par} --email_mode never  --mounts $MOUNTS --partition $PARTITION --image "/lustre/fsw/adlr/adlr-nlp/boxinw/images/retrov2.sqsh"  -c "$COMMAND" -n "generate_${model_size}_${TASK}" --duration 4 --account llmservice_nlp_fm
+submit_job --gpu ${mod_par} --nodes ${pip_par} --email_mode never  --mounts $MOUNTS --partition $PARTITION --image "/lustre/fsw/adlr/adlr-nlp/boxinw/images/retrov2.sqsh"  -c "$COMMAND" -n "generate_${model_size}_${TASK}" --duration 3
 # $COMMAND
 # -m torch.distributed.launch $DISTRIBUTED_ARGS 
