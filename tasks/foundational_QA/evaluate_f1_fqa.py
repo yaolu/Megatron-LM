@@ -78,9 +78,12 @@ if __name__ == "__main__":
     model_name = "qa_blendv12_pp1_same_format_ctx1_43b_64_3e-7"
     # model_name = "megatron_sft_quiet_cockatoo_tp8_pp1"
     # model_name = "gpt3-43b-pretraining-gpt-fitting-tp8pp1"
+    # model_name = "sft_gpt-fitting-pp1_same_format_ctx1_43b_128_5e-6"
+    model_name = "retro-sft_pp1_same_format_ctx1_43b_128_5e-6"
     ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/{}/".format(model_name)
     n_ctx = 5
     iter = 3000
+    iter = 1000
     # iter = 6000
     # iter = 1500
     # iter = 4500

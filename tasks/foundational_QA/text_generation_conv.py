@@ -230,7 +230,8 @@ def main():
     args = get_args()
 
     if args.load is not None:
-        _ = load_checkpoint(model, None, None)
+        _ = load_checkpoint(model, None, None,
+                            strict=False if args.retro_as_gpt else True)
     model = model[0]
 
     # Generate samples.

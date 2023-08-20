@@ -61,6 +61,8 @@ COMMAND="$COMMAND \
        $GEN_ARGS \
        --load $CHECKPOINT_PATH \
        --micro-batch-size $micro_bsz \
+       --retro-as-gpt \
+       --out-seq-length 68 \
        $FT_ARGS"
 
 if [[ $use_retrieved_neighbours ]]; then

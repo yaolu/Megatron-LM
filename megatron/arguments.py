@@ -482,7 +482,8 @@ def _add_retro_args(parser):
                        help="Turn this on when preprocessing retro data.")
     group.add_argument("--retro-attention-gate", type=float, default=1,
                        help="Gated cross attention.")
-
+    group.add_argument("--retro-as-gpt", action="store_true",
+                       help="Turn this on when using retro model as gpt.")
     # Enforce argument naming convention.
     for action in group._group_actions:
         prefix = action.dest.split("_")[0]

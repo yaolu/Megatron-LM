@@ -412,8 +412,8 @@ def retro_generate_tokens_probs_and_return_on_first_stage(
                     hit_double_eol = (new_sample == 628).byte() & started.byte()
                     hit_eol = (new_sample == 198).byte() & started.byte()
                     done_token = hit_double_eol | hit_eol
-                elif context_length > min_prompt_length + 64:
-                    done_token = 1
+                # elif context_length > min_prompt_length + 64:  # previous retrov1 limitations
+                #     done_token = 1
                 else:
                     done_token = (new_sample == termination_id).byte() & \
                         started.byte()

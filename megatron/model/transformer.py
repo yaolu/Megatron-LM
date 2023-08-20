@@ -769,6 +769,10 @@ class ParallelTransformerLayer(MegatronModule):
                 output_layer_init_method,
                 layer_number,
                 attention_type=AttnType.cross_attn)
+        if self.layer_type in (LayerType.decoder,
+                               LayerType.retro_decoder,
+                               LayerType.retro_decoder_with_retriever,
+                               LayerType.retro_encoder) or args.retro_as_gpt:
             # Layernorm on the attention output.
             self.post_inter_attention_layernorm = LayerNorm(
                 args.hidden_size,
@@ -1090,7 +1094,11 @@ class ParallelTransformerLayer(MegatronModule):
 
         # Cross attention.
         if self.layer_type == LayerType.encoder:
-            pass
+            if args.retro_as_gpt:
+                retro_layer_start = 6 if args.num_layers <= 15 else 9
+                layers = np.arange(retro_layer_start, args.num_layers + 1, 3).tolist()
+                if self.layer_number in layers:
+                    layernorm_output = self.post_inter_attention_layernorm(layernorm_input)
         elif self.layer_type == LayerType.decoder:
             layernorm_input, layernorm_output = \
                 self.default_decoder_cross_attention(

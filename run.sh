@@ -14,6 +14,7 @@ bash examples/foundational_qa/finetune_normal_lm.sh qa_blendv12 2b  64 3e-7 1 pp
 bash examples/foundational_qa/sft_normal_lm.sh sft 2b   128 5e-6 1 pp1
 bash examples/foundational_qa/sft_normal_lm.sh sft 43b  128 5e-6 1 pp1
 
+bash examples/foundational_qa/sft_normal_lm.sh sft 43b  128 5e-6 1 gpt-fitting-pp1
 
 ## How about retro?
 
@@ -29,6 +30,9 @@ bash examples/foundational_qa/sft_normal_lm.sh sft 43b  128 5e-6 1 pp1
 
 
 # Phase II: QA-tuning
+bash examples/foundational_qa/finetune_normal_lm.sh qa_blendv12 43b 64 3e-7 1 pp1  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_43b_128_5e-6
+
+
 bash examples/foundational_qa/finetune_retro_lm.sh qa_blendv12 43b 64 3e-7 1 pp1  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_43b_128_5e-6
 
 bash examples/foundational_qa/finetune_retro_lm.sh qa_blendv12 2b 64 3e-7 1 pp1  /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-2b-pretraining-retro-fitting

@@ -72,6 +72,9 @@ if [[ $model_card == *quiet_cockatoo* ]]; then
     PRETRAINED_CHECKPOINT=$quiet_cockatoo
 fi
 
+if [[ $model_card == *gpt-fitting* ]]; then
+    PRETRAINED_CHECKPOINT="/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-gpt-fitting-tp8pp1"
+fi
 
 if [[ -d "$CHECKPOINT_PATH" ]]; then
     options="$options \
@@ -82,6 +85,7 @@ else
         --finetune \
 	      --no-load-rng \
         --no-load-optim "
+    echo $PRETRAINED_CHECKPOINT
 fi
 
 DIR=`pwd`
