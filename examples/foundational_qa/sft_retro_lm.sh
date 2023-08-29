@@ -25,9 +25,10 @@ if [[ $model_size == "2b" ]]; then
 fi
 
 if [[ $model_size == "8b" ]]; then
-    num_nodes=4
+    num_nodes=1
     lr=5e-6
     min_lr=5e-6
+    PRETRAINED_CHECKPOINT="/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-noseqpar"
 fi
 
 if [[ $model_size == "43b" ]]; then
@@ -111,4 +112,4 @@ export CUDA_DEVICE_MAX_CONNECTIONS=1
 
 
 echo ${run_cmd}
-submit_job --gpu ${num_gpus} --nodes ${num_nodes} --email_mode never  --mounts $MOUNTS --partition $PARTITION  --image $DOCKER -c "$LAUNCH ${run_cmd}" -n "${SAVENAME}" --duration 3  # --dependent_clones 1
+submit_job --gpu ${num_gpus} --nodes ${num_nodes} --email_mode never  --mounts $MOUNTS --partition $PARTITION  --image $DOCKER -c "$LAUNCH ${run_cmd}" -n "${SAVENAME}" --duration 0.5  # --dependent_clones 1

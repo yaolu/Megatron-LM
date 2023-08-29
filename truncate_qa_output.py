@@ -280,6 +280,12 @@ prediction_files.append(ckpt_path + "/gate_0_chunk_1k_generate_ford_tasb_ftmsmar
 prediction_files.append(ckpt_path + "/gate_0_chunk_1k_generate_att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_43b_test_greedy_0_250_32552.txt")
 prediction_files.append(ckpt_path + "/gate_0_chunk_1k_generate_nq_43b_test_greedy_0_200_32552.txt")
 
+prediction_files = []
+model_name = "retro-sft_pp1_same_format_ctx1_8b_128_5e-6"
+ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/{}/".format(model_name)
+prediction_files.append(ckpt_path + "/chunk_1k_generate_nq_8b_test_greedy_0_3610_1000.txt")
+prediction_files.append(ckpt_path + "/gate_0_chunk_1k_generate_nq_8b_test_greedy_0_3610_1000.txt")
+prediction_files.append("/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_8b_128_5e-6/generate_nq_8b_test_greedy_0_3610_1000.txt")
 
 # In[8]:
 

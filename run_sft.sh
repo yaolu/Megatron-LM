@@ -12,6 +12,7 @@ bash examples/foundational_qa/finetune_normal_lm.sh qa_blendv12 2b  64 3e-7 1 pp
 # how the training works?
 
 bash examples/foundational_qa/sft_normal_lm.sh sft 2b   128 5e-6 1 pp1
+bash examples/foundational_qa/sft_normal_lm.sh sft 8b   128 5e-6 1 pp1
 bash examples/foundational_qa/sft_normal_lm.sh sft 43b  128 5e-6 1 pp1
 
 bash examples/foundational_qa/sft_normal_lm.sh sft 43b  128 5e-6 1 gpt-fitting-pp1
@@ -23,6 +24,9 @@ bash examples/foundational_qa/sft_normal_lm.sh sft 43b  128 5e-6 1 gpt-fitting-p
 #3. (ablation) pad tokens to the left
 
 bash examples/foundational_qa/sft_retro_lm.sh sft 2b  128 5e-6 1 pp1
+
+bash examples/foundational_qa/sft_retro_lm.sh sft 8b  128 5e-6 1 pp1
+
 bash examples/foundational_qa/sft_retro_lm.sh sft 43b  128 5e-6 1 pp1
 
 # run for second time

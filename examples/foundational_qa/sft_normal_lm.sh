@@ -24,7 +24,7 @@ if [[ $model_size == "2b" ]]; then
 fi
 
 if [[ $model_size == "8b" ]]; then
-    num_nodes=4
+    num_nodes=16
     lr=5e-6
     min_lr=5e-6
 fi

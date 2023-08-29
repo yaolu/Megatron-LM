@@ -61,8 +61,7 @@ COMMAND="$COMMAND \
        $GEN_ARGS \
        --load $CHECKPOINT_PATH \
        --micro-batch-size $micro_bsz \
-       --retro-as-gpt \
-       --out-seq-length 68 \
+       --out-seq-length 66 \
        $FT_ARGS"
 
 if [[ $use_retrieved_neighbours ]]; then
@@ -77,11 +76,6 @@ export NCCL_IB_TIMEOUT=19
 export NCCL_IB_SL=1
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
-QA_HOME="/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm"
-MOUNTS="/lustre/fsw/adlr/adlr-nlp/"
-PARTITION="luna"
-LAUNCH="${ADLR_UTILS}/mp_launch"
-
-submit_job --gpu ${mod_par} --nodes ${pip_par} --email_mode never  --mounts $MOUNTS --partition $PARTITION --image $DOCKER  -c "$COMMAND" -n "generate_cross_${model_size}_${TASK}" --duration 2
+submit_job --gpu ${mod_par} --nodes ${pip_par} --email_mode never  --mounts $MOUNTS --partition $PARTITION --image $DOCKER  -c "$COMMAND" -n "generate_cross_${model_size}_${TASK}" --duration 1
 # echo $COMMAND
 # -m torch.distributed.launch $DISTRIBUTED_ARGS 

@@ -198,11 +198,37 @@ if __name__ == "__main__":
     # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed//chunk_1k_generate_nq_43b_test_greedy_0_400_32552.concat.txt.period.txt"
     # evaluate_ems(prediction_file, ground_truth_file)
 
-    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-2b-pretraining-retro-fitting//gate_0_chunk_1k_generate_nq_2b_test_greedy_0_400_97656.concat.txt.period.txt"
-    evaluate_ems(prediction_file, ground_truth_file)
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-2b-pretraining-retro-fitting//gate_0_chunk_1k_generate_nq_2b_test_greedy_0_400_97656.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
     #
-    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed//gate_0_chunk_1k_generate_nq_43b_test_greedy_0_400_32000.concat.txt.period.txt"
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed//gate_0_chunk_1k_generate_nq_43b_test_greedy_0_400_32000.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
+
+    # rebuttal
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_8b_128_5e-6//chunk_1k_generate_nq_8b_test_greedy_0_3610_1000.txt.period.txt"
     evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_8b_128_5e-6//chunk_1k_generate_nq_8b_test_greedy_0_3610_1000.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_8b_128_5e-6//gate_0_chunk_1k_generate_nq_8b_test_greedy_0_3610_1000.txt.period.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_8b_128_5e-6//gate_0_chunk_1k_generate_nq_8b_test_greedy_0_3610_1000.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_8b_128_5e-6/generate_nq_8b_test_greedy_0_3610_1000.txt.period.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_8b_128_5e-6/generate_nq_8b_test_greedy_0_3610_1000.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_8b_128_5e-6/nq_5_generate_8b_test_greedy_0_3610_1000_ret.txt.v2"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_8b_128_5e-6//nq_5_generate_8b_test_greedy_0_3610_1000_ret.txt.v2"
+    evaluate_ems(prediction_file, ground_truth_file)
+
 
     # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-multi-1.1t-gtc/generate_8b_test_greedy_0_400_1417624.concat.txt.period.txt"
     # evaluate_ems(prediction_file, ground_truth_file)

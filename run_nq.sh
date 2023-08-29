@@ -1,3 +1,45 @@
+# rebuttal
+
+# short template
+
+## retro
+bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk.sh        nq 8b greedy test 32 1e-6 0      3610    1000 2 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_8b_128_5e-6 2
+bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 8b greedy test 32 1e-6 0      3610    1000 2 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_8b_128_5e-6 2
+
+## gpt
+bash examples/qa/generate_multijob_ckpt_step_same_format_short.sh nq 8b greedy test 32 1e-6 0    3610    1000 2 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_8b_128_5e-6
+
+#python tasks/retro_qa/evaluate.py
+#reading /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_8b_128_5e-6//chunk_1k_generate_nq_8b_test_greedy_0_3610_1000.txt.period.txt
+#3610it [00:00, 42729.45it/s]
+#Exact Match: 0.3116;
+#done :-)
+#reading /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_8b_128_5e-6//chunk_1k_generate_nq_8b_test_greedy_0_3610_1000.txt
+#3610it [00:00, 51160.25it/s]
+#Exact Match: 0.3000;
+#done :-)
+#reading /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_8b_128_5e-6//gate_0_chunk_1k_generate_nq_8b_test_greedy_0_3610_1000.txt.period.txt
+#3610it [00:00, 55628.80it/s]
+#Exact Match: 0.3130;
+#done :-)
+#reading /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_8b_128_5e-6//gate_0_chunk_1k_generate_nq_8b_test_greedy_0_3610_1000.txt
+#3610it [00:00, 19671.97it/s]
+#Exact Match: 0.3194;
+#done :-)
+#reading /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_8b_128_5e-6/generate_nq_8b_test_greedy_0_3610_1000.txt.period.txt
+#3610it [00:00, 74879.03it/s]
+#Exact Match: 0.2975;
+#done :-)
+#reading /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_8b_128_5e-6/generate_nq_8b_test_greedy_0_3610_1000.txt
+#3610it [00:00, 57202.69it/s]
+#Exact Match: 0.3000;
+#done :-)
+
+# conv template
+
+run_gen_blends.sh
+
+
 # 43B GPT
 #bash examples/qa/generate_multijob_ckpt_step_same_format_short.sh nq 43b greedy test 32 1e-6 0    400    472541 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-multi-1.1t-gtc/tp8pp1
 #bash examples/qa/generate_multijob_ckpt_step_same_format_short.sh nq 43b greedy test 32 1e-6 400  400    472541 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-multi-1.1t-gtc/tp8pp1
@@ -124,24 +166,25 @@
 #bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk.sh nq 43b greedy test 32 1e-6 3200   800    32552 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
 
 #bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 0      400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
-bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 400    400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
-bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 800    400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
-bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 1200   400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
-bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 1600   400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
-bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 2000   400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
-bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 2400   400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
-bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 2800   400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
-bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 3200   800    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
+#bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 400    400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
+#bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 800    400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
+#bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 1200   400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
+#bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 1600   400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
+#bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 2000   400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
+#bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 2400   400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
+#bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 2800   400    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
+#bash examples/qa/retro_generate_multijob_ckpt_step_same_format_short_flex_chunk_gate_0.sh nq 43b greedy test 32 1e-6 3200   800    32000 1 pp1 /lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed 2
 
-cat    gate_0_chunk_1k_generate_nq_43b_test_greedy_0_400_32000.txt \
-   gate_0_chunk_1k_generate_nq_43b_test_greedy_400_400_32000.txt \
-   gate_0_chunk_1k_generate_nq_43b_test_greedy_800_400_32000.txt \
-  gate_0_chunk_1k_generate_nq_43b_test_greedy_1200_400_32000.txt \
-  gate_0_chunk_1k_generate_nq_43b_test_greedy_1600_400_32000.txt \
-  gate_0_chunk_1k_generate_nq_43b_test_greedy_2000_400_32000.txt \
-  gate_0_chunk_1k_generate_nq_43b_test_greedy_2400_400_32000.txt \
-  gate_0_chunk_1k_generate_nq_43b_test_greedy_2800_400_32000.txt \
-  gate_0_chunk_1k_generate_nq_43b_test_greedy_3200_800_32000.txt > gate_0_chunk_1k_generate_nq_43b_test_greedy_0_400_32000.concat.txt
+
+#cat    gate_0_chunk_1k_generate_nq_43b_test_greedy_0_400_32000.txt \
+#   gate_0_chunk_1k_generate_nq_43b_test_greedy_400_400_32000.txt \
+#   gate_0_chunk_1k_generate_nq_43b_test_greedy_800_400_32000.txt \
+#  gate_0_chunk_1k_generate_nq_43b_test_greedy_1200_400_32000.txt \
+#  gate_0_chunk_1k_generate_nq_43b_test_greedy_1600_400_32000.txt \
+#  gate_0_chunk_1k_generate_nq_43b_test_greedy_2000_400_32000.txt \
+#  gate_0_chunk_1k_generate_nq_43b_test_greedy_2400_400_32000.txt \
+#  gate_0_chunk_1k_generate_nq_43b_test_greedy_2800_400_32000.txt \
+#  gate_0_chunk_1k_generate_nq_43b_test_greedy_3200_800_32000.txt > gate_0_chunk_1k_generate_nq_43b_test_greedy_0_400_32000.concat.txt
 
 
 #cat    chunk_1k_generate_nq_43b_test_greedy_0_400_32000.txt \
