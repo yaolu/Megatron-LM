@@ -29,7 +29,8 @@ if [[ $model_size == "8b" ]]; then
 fi
 
 if [[ $model_size == "43b" ]]; then
-    num_nodes=64
+    # num_nodes=64
+    num_nodes=4 # debug
     min_lr=0.00000001
 fi
 
@@ -90,6 +91,12 @@ run_cmd="python -u ${DIR}/tasks/foundational_QA/finetune_gpt_with_pretrain.py ${
 #      --container-mounts "/home/pengx/projects/retro/:/home/pengx/projects/retro/" \
 #      --output=$DIR/logs/%x_%j_$DATETIME.log sh -c "${run_cmd}"
 # $run_cmd
+
+## running command
+## debug
+# bash examples/foundational_qa/finetune_normal_lm.sh qa_blendv12 43b 4 3e-7 1 gpt_1e-8_conv_quiet_cockatoo_pp1_fixed_doc2dial
+# bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blendv1 43b 4 3e-7 1 gpt_1e-8_conv_quiet_cockatoo_pp1_debug
+# bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blendv1 43b 64 3e-7 1 gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn
 
 export SUBMIT_LOGS="${QA_HOME}/megatron-lm/logs"
 mkdir -p $SUBMIT_LOGS
