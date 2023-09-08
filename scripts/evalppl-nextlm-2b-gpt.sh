@@ -2,10 +2,10 @@
 
 #SBATCH -p luna,interactive
 #SBATCH --nodes=1
-#SBATCH -A adlr
+#SBATCH -A llmservice_nlp_retro
 #SBATCH -t 0:30:00
 #SBATCH --exclusive
-#SBATCH --job-name=adlr-nlp:retro-nextlm-gpt-2b-eval
+#SBATCH --job-name=llmservice_nlp_retro-retro:retro-nextlm-gpt-2b-eval
 #SBATCH --ntasks-per-node=8
 #SBATCH --dependency=singleton
 

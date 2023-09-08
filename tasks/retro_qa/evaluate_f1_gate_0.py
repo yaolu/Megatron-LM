@@ -11,21 +11,25 @@ def compute_f1_score(predicted_answers, groundtruth_answer, exp_name="default"):
         groundtruth_answer = groundtruth_answer[:len(predicted_answers)]
 
     guess_list = []
-    for answer in predicted_answers:
-        answer = answer.strip()
-        if "<|endoftext|>" in answer:
-            answer = answer.replace("<|endoftext|>", "")
-        guess_list.append(answer)
-
     answer_list = []
-    for answer in groundtruth_answer:
-        answer = answer.strip()
-        if answer == "no_passages_used":
-            answer = ""
-        answer_list.append(answer)
 
     assert len(guess_list) == len(answer_list), \
         "lengths of guess and answer are different!"
+
+    for pred, ans in zip(predicted_answers, groundtruth_answer):
+        pred = pred.strip()
+        if type(ans) == str:
+            ans = ans.strip()
+        elif type(ans) == dict:
+            ans = ans['text'].strip()
+        elif ans == None:
+            continue
+        if "<|endoftext|>" in pred:
+            pred = pred.replace("<|endoftext|>", "")
+        if ans == "no_passages_used":
+            ans = ""
+        guess_list.append(pred)
+        answer_list.append(ans)
 
     precision, recall, f1 = F1Metric.compute_all_pairs(guess_list, answer_list)
     print('Method: %s; Precision: %.4f; recall: %.4f; f1: %.4f' % ( \
@@ -40,6 +44,8 @@ def load_groundtruth_file(data_file):
     for instance in nq_examples:
         if "answers" in instance:
             answers = instance["answers"]
+            if len(answers) < 1:
+                answers = [None]
         elif "answer" in instance:
             if type(instance["answer"]) is str:
                 answers = [instance["answer"]]
@@ -76,8 +82,10 @@ if __name__ == "__main__":
     model_name = "gpt3-43b-multi-1.1t-gtc/tp8pp1"
     model_name = "gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed"
     # model_name = "gpt3-43b-pretraining-gpt-fitting-tp8pp1"
-    model_name = "retro-sft_pp1_same_format_ctx1_43b_128_5e-6"
     # model_name = "retro-qa_blendv12_pp1_same_format_ctx1_43b_64_3e-7"
+    model_name = "retro-multiturn_qa_blendv2_retro_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
+    model_name = "retro-sft_pp1_same_format_ctx1_43b_128_5e-6"
+
     ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/{}/".format(model_name)
     ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/{}/".format(model_name)
     n_ctx = 5
@@ -157,6 +165,8 @@ if __name__ == "__main__":
     prediction_file = ckpt_path + "flex_reuse_foundational_qa_nv_benefits_dragon_retriever300_retrieved_generic_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
     prediction_file = ckpt_path + "flex_gate_0_reuse_foundational_qa_nv_benefits_dragon_retriever300_retrieved_generic_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/nv_benefits_dragon_retriever300_retrieved_generic/test.json"
+    # ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa//nv_benefits_dragon_retriever300_retrieved_generic/test.json"  ## multiturn nv benefits
+
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
@@ -232,6 +242,48 @@ if __name__ == "__main__":
     prediction_file = ckpt_path + "/flex_reuse_foundational_qa_inference_input_retriever_dragon_msmarcominilm_doc2dial_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
     prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_inference_input_retriever_dragon_msmarcominilm_doc2dial_{}_{}_43b_test_greedy_0_250_{}.txt".format(n_ctx, n_enc, iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/inference_input_retriever_dragon_msmarcominilm_doc2dial/test.json"
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
+
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_newsqa_1_1_43b_test_greedy_0_250_{}.txt".format(iter)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/newsqa/test.json"
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
+
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_squad2.0_1_1_43b_test_greedy_0_250_{}.txt".format(iter)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/squad2.0/test.json"
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
+
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_squad1.1_1_1_43b_test_greedy_0_250_{}.txt".format(iter)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/squad1.1/test.json"
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
+
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_ROPES_1_1_43b_test_greedy_0_250_{}.txt".format(iter)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/ROPES/test.json"
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
+
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_Quoref_1_1_43b_test_greedy_0_250_{}.txt".format(iter)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/Quoref/test.json"
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
+
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_NarrativeQA_1_1_43b_test_greedy_0_250_{}.txt".format(iter)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/NarrativeQA/test.json"
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
+
+    prediction_file = ckpt_path + "/flex_gate_0_reuse_foundational_qa_drop_1_1_43b_test_greedy_0_250_{}.txt".format(iter)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/drop/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)

@@ -1,3 +1,4 @@
+## instructions
 # qa blends: https://gitlab-master.nvidia.com/ADLR/megatron-lm/-/blob/main_sft/examples/foundational_qa/qa_blendv12.sh
 # finetuning command: bash examples/foundational_qa/finetune_normal_lm.sh qa_blendv12 43b  64 3e-7 1 gpt_1e-8_conv_quiet_cockatoo_pp1
 # all data under: /lustre/fsw/adlr/adlr-nlp/pengx/data/foundational_qa/s3_data/
@@ -48,3 +49,15 @@ bash run_gen_blends.sha
 ## Evaluation
 
 python tasks/foundational_QA/evaluate_f1_fqa.py
+
+## Phase III: multi-turn QA
+
+bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blendv2 43b 64 3e-7 1 gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_43b_128_5e-6
+
+bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blendv2 43b 64 3e-7 1 nemo_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/pengx/shared_ckpts/megatron_sft_quiet_cockatoo_tp8_pp1/
+
+bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blendv2 2b 64 3e-7 1 gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_2b_128_5e-6
+
+bash examples/foundational_qa/finetune_retro_lm.sh multiturn_qa_blendv2 43b 64 3e-7 1 retro_1e-8_conv_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_43b_128_5e-6
+
+bash examples/foundational_qa/finetune_retro_lm.sh multiturn_qa_blendv2 2b 64 3e-7 1 retro_1e-8_conv_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_2b_128_5e-6

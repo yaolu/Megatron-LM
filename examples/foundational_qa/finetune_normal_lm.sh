@@ -18,7 +18,7 @@ train_iters=15000
 num_nodes=1
 num_gpus=8
 
-if [[ $model_size == "8b" ]]; then
+if [[ $model_size == "2b" ]]; then
     num_nodes=1
     min_lr=5e-6
 fi
@@ -79,7 +79,7 @@ else
     options="$options \
         --load $PRETRAINED_CHECKPOINT \
         --finetune \
-	--no-load-rng \
+	      --no-load-rng \
         --no-load-optim "
 fi
 

@@ -48,7 +48,6 @@ GEN_ARGS="$SAMPLE_ARGS \
           --retro-workdir ${RETRO_WORKDIR} \
           --retro-add-retriever \
           --retro-num-neighbors ${K} \
-          --use-retrieved-neighbours \
           --reuse-top \
           --retro-attention-gate 0 \
           "

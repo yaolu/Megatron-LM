@@ -40,7 +40,7 @@ def format_answer(answer):
 """GPT ft dataset."""
 
 
-def preprocess(data_file, inference_only=False, retrieved_neighbours=False, fix_newsqa=False):
+def preprocess(data_file, inference_only=False, retrieved_neighbours=False, fix_newsqa=True):
     args = get_args()
     assert args.ft_neighbours > 0
     if args.longform_answer:

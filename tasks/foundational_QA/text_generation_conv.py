@@ -246,7 +246,7 @@ def main():
 
     if args.load is not None:
         _ = load_checkpoint(model, None, None,
-                            strict=False if args.retro_as_gpt else True)
+                            strict=True)
     model = model[0]
 
     # Generate samples.

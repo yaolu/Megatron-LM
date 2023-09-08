@@ -16,6 +16,7 @@ ckpt=${12}
 K=${13}
 
 . ./examples/qa/common_args.sh
+. ./examples/foundational_qa/gen_input.sh
 
 top_k=1
 micro_bsz=1
@@ -84,6 +85,6 @@ MOUNTS="/lustre/fsw/adlr/adlr-nlp/"
 PARTITION="luna"
 LAUNCH="${ADLR_UTILS}/mp_launch"
 
-submit_job --gpu ${mod_par} --nodes ${pip_par} --email_mode never  --mounts $MOUNTS --partition $PARTITION --image "/lustre/fsw/adlr/adlr-nlp/boxinw/images/retrov2.sqsh"  -c "$COMMAND" -n "generate_${model_size}_${TASK}" --duration 4
+submit_job --gpu ${mod_par} --nodes ${pip_par} --email_mode never  --mounts $MOUNTS --partition $PARTITION --image "/lustre/fsw/adlr/adlr-nlp/boxinw/images/retrov2.sqsh"  -c "$COMMAND" -n "generate_${model_size}_${TASK}" --duration 2
 # $COMMAND
 # -m torch.distributed.launch $DISTRIBUTED_ARGS 

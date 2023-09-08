@@ -1,5 +1,7 @@
-sample_input_file="/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/$TASK/${split}.json"
-DATA_FOLDER="/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/$TASK"
+#sample_input_file="/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/$TASK/${split}.json"
+#DATA_FOLDER="/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/$TASK"
+sample_input_file="/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/$TASK/${split}.json"
+DATA_FOLDER="/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/$TASK"
 FEWSHOT_INPUT_FOLDER="/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa"
 
 if [[ $TASK == "nq" ]]; then
