@@ -30,6 +30,20 @@ bash examples/foundational_qa/sft_retro_lm.sh sft 8b  128 5e-6 1 pp1
 
 bash examples/foundational_qa/sft_retro_lm.sh sft 43b  128 5e-6 1 pp1
 
+# 100% quiet cockatoo
+
+bash examples/foundational_qa/sft_retro_lm.sh sft 43b  128 5e-6 1 full-qc-pp1
+
+bash examples/foundational_qa/sft_retro_lm.sh sft 43b  128 5e-6 1 full-qc-pp1-seed-2333
+
+bash examples/foundational_qa/sft_retro_lm.sh sft 43b  128 5e-6 1 full-qc-pp1-seed-1234
+
+bash examples/foundational_qa/sft_normal_lm.sh sft 43b 128 5e-6 1 full-qc-pp1
+
+bash examples/foundational_qa/sft_normal_lm.sh sft 43b 128 5e-6 1 gpt-fitting-full-qc-pp1
+
+
+
 # run for second time
 bash examples/foundational_qa/sft_normal_lm.sh sft 43b  128 5e-6 1 pp1
 
@@ -61,3 +75,22 @@ bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blendv2 2b 64 3
 bash examples/foundational_qa/finetune_retro_lm.sh multiturn_qa_blendv2 43b 64 3e-7 1 retro_1e-8_conv_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_43b_128_5e-6
 
 bash examples/foundational_qa/finetune_retro_lm.sh multiturn_qa_blendv2 2b 64 3e-7 1 retro_1e-8_conv_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_2b_128_5e-6
+
+### Phase IV: multi-turn QA v5
+bash examples/foundational_qa/finetune_retro_lm.sh multiturn_qa_blend_commercial_v5 2b 64 3e-7 1 retro_1e-8_conv_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_2b_128_5e-6
+bash examples/foundational_qa/finetune_retro_lm.sh multiturn_qa_blend_commercial_v5 43b 64 3e-7 1 retro_1e-8_conv_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_pp1_same_format_ctx1_43b_128_5e-6
+bash examples/foundational_qa/finetune_retro_lm.sh multiturn_qa_blend_commercial_v5 43b 64 3e-7 1 retro_1e-8_conv_full_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_full-qc-pp1_same_format_ctx1_43b_128_5e-6
+bash examples/foundational_qa/finetune_retro_lm.sh multiturn_qa_blend_commercial_v5 43b 64 3e-7 1 retro_1e-8_conv_full_quiet-seed-2333_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_full-qc-pp1-seed-2333_same_format_ctx1_43b_128_5e-6
+#bash examples/foundational_qa/finetune_retro_lm.sh multiturn_qa_blend_commercial_v5 43b 64 3e-7 1 retro_1e-8_conv_full_quiet-seed-1234_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_full-qc-pp1-seed-1234_same_format_ctx1_43b_128_5e-6
+
+
+
+bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blend_commercial_v5 43b 64 3e-7 1 gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_43b_128_5e-6
+bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blend_commercial_v5 43b 64 3e-7 1 gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_bak  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_43b_128_5e-6_bak
+bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blend_commercial_v5 43b 64 3e-7 1 nemo_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/pengx/shared_ckpts/megatron_sft_quiet_cockatoo_tp8_pp1/
+
+bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blend_commercial_v5 43b 64 3e-7 1 gpt_fitting_1e-8_conv_full_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_gpt-fitting-full-qc-pp1_same_format_ctx1_43b_128_5e-6
+bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blend_commercial_v5 43b 64 3e-7 1 gpt_1e-8_conv_full_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_full-qc-pp1_same_format_ctx1_43b_128_5e-6
+
+
+bash examples/foundational_qa/finetune_normal_lm.sh multiturn_qa_blend_commercial_v5 43b 64 3e-7 1 gpt_1e-8_conv_full_quiet_cockatoo_pp1_addmultiturn  /lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_full-qc-pp1_same_format_ctx1_43b_128_5e-6

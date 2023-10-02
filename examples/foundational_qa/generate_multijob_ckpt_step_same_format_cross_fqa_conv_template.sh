@@ -4,18 +4,16 @@ TASK=$1
 model_size=$2
 sampling=$3
 split=$4
-global_bsz=$5
-lr=$6
-dropout=0.0
-gen_start=$7
-num_gen=$8
-ckpt_step=${9}
-ft_neighbours=${10}
-model_card=${11}
-ckpt=${12}
-K=${13}
+gen_start=$5
+num_gen=$6
+ckpt_step=$7
+ft_neighbours=$8
+SAVENAME=$9
+model_card=$9
+template=${10}
+use_retrieved_neighbours=${11}
 
-. ./examples/qa/common_args.sh
+. ./examples/foundational_qa/common_args.sh
 . ./examples/foundational_qa/gen_input.sh
 
 top_k=1
@@ -27,17 +25,16 @@ if [[ $sampling == "beam" ]]; then
     SAMPLE_ARGS="--beam-search"
 fi
 
-#SAVENAME="${TASK}_${model_card}_same_format_ctx${ft_neighbours}_${model_size}_${global_bsz}_${lr}"
-#CHECKPOINT_PATH="${QA_HOME}/checkpoints/applications/${SAVENAME}"
-CHECKPOINT_PATH=${ckpt}
-sample_output_file="${CHECKPOINT_PATH}/flex_gate_0_reuse_foundational_qa_${TASK}_${ft_neighbours}_${K}_${model_size}_${split}_${sampling}_${gen_start}_${num_gen}_${ckpt_step}.txt"
+CHECKPOINT_PATH="${QA_HOME}/checkpoints/applications/${SAVENAME}"
+sample_output_file="${CHECKPOINT_PATH}/template_${template}_${TASK}_${ft_neighbours}_generate_${model_size}_${split}_${sampling}_${gen_start}_${num_gen}_${ckpt_step}.txt"
+
+if [[ $use_retrieved_neighbours ]]; then
+    sample_output_file="${CHECKPOINT_PATH}/template_${template}_${TASK}_${ft_neighbours}_generate_${model_size}_${split}_${sampling}_${gen_start}_${num_gen}_${ckpt_step}_ret.txt"
+fi
+
+sample_output_file="${sample_output_file}.v2"
 
 DIR=`pwd`
-
-echo $sample_input_file
-echo $sample_output_file
-
-RETRO_WORKDIR=/lustre/fsw/adlr/adlr-nlp/boxinw/next-llm
 
 GEN_ARGS="$SAMPLE_ARGS \
           --gen-start-idx $gen_start \
@@ -45,11 +42,7 @@ GEN_ARGS="$SAMPLE_ARGS \
           --ckpt-step ${ckpt_step} \
           --sample-input-file $sample_input_file \
           --sample-output-file $sample_output_file \
-          --retro-workdir ${RETRO_WORKDIR} \
-          --retro-add-retriever \
-          --retro-num-neighbors ${K} \
-          --reuse-top \
-          --retro-attention-gate 0 \
+          --template-id ${template} \
           "
 
 DISTRIBUTED_ARGS="--nproc_per_node ${mod_par} \
@@ -60,10 +53,10 @@ DISTRIBUTED_ARGS="--nproc_per_node ${mod_par} \
 # COMMAND="python -m torch.distributed.launch $DISTRIBUTED_ARGS ${DIR}/prompt_learning/text_generation.py \
 # COMMAND="python -u ${DIR}/tasks/retro_qa/text_generation.py \
 
-COMMAND="python -m torch.distributed.launch $DISTRIBUTED_ARGS ${DIR}/tasks/foundational_QA/retro_text_generation.py"
+COMMAND="python -m torch.distributed.launch $DISTRIBUTED_ARGS ${DIR}/tasks/foundational_QA/text_generation_conv.py"
 
 if [[ $model_size == "43b" ]]; then
-   COMMAND="$LAUNCH python -u ${DIR}/tasks/foundational_QA/retro_text_generation.py"
+   COMMAND="$LAUNCH python -u ${DIR}/tasks/foundational_QA/text_generation_conv.py"
 fi
 
 COMMAND="$COMMAND \
@@ -73,6 +66,10 @@ COMMAND="$COMMAND \
        --micro-batch-size $micro_bsz \
        $FT_ARGS"
 
+if [[ $use_retrieved_neighbours ]]; then
+        COMMAND+=" --use-retrieved-neighbours "
+fi
+
 export SUBMIT_LOGS="${QA_HOME}/megatron-lm/logs"
 mkdir -p $SUBMIT_LOGS
 export NCCL_DEBUG=INFO
@@ -81,10 +78,11 @@ export NCCL_IB_TIMEOUT=19
 export NCCL_IB_SL=1
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
+QA_HOME="/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm"
 MOUNTS="/lustre/fsw/adlr/adlr-nlp/"
 PARTITION="luna"
 LAUNCH="${ADLR_UTILS}/mp_launch"
 
-submit_job --gpu ${mod_par} --nodes ${pip_par} --email_mode never  --mounts $MOUNTS --partition $PARTITION --image "/lustre/fsw/adlr/adlr-nlp/boxinw/images/retrov2.sqsh"  -c "$COMMAND" -n "generate_${model_size}_${TASK}" --duration 4
-# $COMMAND
+submit_job --gpu ${mod_par} --nodes ${pip_par} --email_mode never  --mounts $MOUNTS --partition $PARTITION --image $DOCKER  -c "$COMMAND" -n "generate_cross_${model_size}_${TASK}" --duration 4
+# echo $COMMAND
 # -m torch.distributed.launch $DISTRIBUTED_ARGS 

@@ -2,6 +2,7 @@ from tqdm import tqdm
 import string
 import json
 from metrics import F1Metric
+from evaluate import evaluate_ems
 
 
 def compute_f1_score(predicted_answers, groundtruth_answer, exp_name="default"):
@@ -86,8 +87,14 @@ if __name__ == "__main__":
     model_name = "multiturn_qa_blendv2_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
     model_name = "multiturn_qa_blendv2_nemo_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
     model_name = "sft_pp1_same_format_ctx1_43b_128_5e-6"
-    # model_name = "megatron_sft_quiet_cockatoo_tp8_pp1"
-
+    model_name = "megatron_sft_quiet_cockatoo_tp8_pp1"
+    model_name = "multiturn_qa_blend_commercial_v5_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
+    model_name = "multiturn_qa_blend_commercial_v5_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_bak_same_format_ctx1_43b_64_3e-7"
+    model_name = "multiturn_qa_blend_commercial_v5_nemo_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
+    model_name = "sft_full-qc-pp1_same_format_ctx1_43b_128_5e-6"
+    # model_name = "sft_gpt-fitting-full-qc-pp1_same_format_ctx1_43b_128_5e-6"
+    # model_name = "multiturn_qa_blend_commercial_v5_gpt_fitting_1e-8_conv_full_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
+    # model_name = "multiturn_qa_blend_commercial_v5_gpt_1e-8_conv_full_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
     ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/{}/".format(model_name)
     n_ctx = 5
     iter = 3000
@@ -139,7 +146,7 @@ if __name__ == "__main__":
     # prediction_file = ckpt_path + "/nv_benefits_dragon_retriever300_retrieved_generic_{}_generate_43b_test_greedy_0_250_1_ret.txt.v2".format(n_ctx)
     # prediction_file = ckpt_path + "/nv_benefits_dragon_retriever300_retrieved_generic_{}_generate_43b_test_greedy_0_250_32552_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/nv_benefits_dragon_retriever300_retrieved_generic/test.json"  # for single-turn
-    # ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa//nv_benefits_dragon_retriever300_retrieved_generic/test.json"
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa//nv_benefits_dragon_retriever300_retrieved_generic/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
@@ -194,45 +201,66 @@ if __name__ == "__main__":
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
+    prediction_file = ckpt_path + "/nq_5_generate_43b_test_greedy_0_2500_{}_ret.txt.v2".format(iter)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/NQ/test.json"
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
+    evaluate_ems(prediction_file, ground_truth_file)
 
-    prediction_file = ckpt_path + "/newsqa_1_generate_43b_test_greedy_0_250_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/tqa_5_generate_43b_test_greedy_0_2500_{}_ret.txt.v2".format(iter)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/TQA/test.json"
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = ckpt_path + "/newsqa_1_generate_43b_test_greedy_0_2500_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/newsqa/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/squad2.0_1_generate_43b_test_greedy_0_250_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/squad2.0_1_generate_43b_test_greedy_0_2500_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/squad2.0/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/squad1.1_1_generate_43b_test_greedy_0_250_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/squad1.1_1_generate_43b_test_greedy_0_2500_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/squad1.1/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/ROPES_1_generate_43b_test_greedy_0_250_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/ROPES_1_generate_43b_test_greedy_0_2500_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/ROPES/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/Quoref_1_generate_43b_test_greedy_0_250_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/Quoref_1_generate_43b_test_greedy_0_2500_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/Quoref/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/NarrativeQA_1_generate_43b_test_greedy_0_250_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/NarrativeQA_1_generate_43b_test_greedy_0_2500_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/NarrativeQA/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/drop_1_generate_43b_test_greedy_0_250_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/drop_1_generate_43b_test_greedy_0_2500_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/drop/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
+
+    prediction_file = ckpt_path + "/ELI5_{}_generate_43b_test_greedy_0_1000_{}_ret.txt.v2".format(
+        n_ctx, iter)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/ELI5/test.json"
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
+

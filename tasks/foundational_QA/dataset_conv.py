@@ -68,7 +68,11 @@ def preprocess(data_file, inference_only=False, retrieved_neighbours=False, fix_
                 neighbours = ["title: " + ctx["title"] + ", source: " + ctx["text"] for ctx in contexts]
             else:
                 if "sub-paragraphs" in instance:
-                    neighbours = ["title: , source: " + instance["sub-paragraphs"]]
+                    if type(instance["sub-paragraphs"]) == list:  # doc2dial:
+                        neighbours = [
+                            "title: " + instance["sub-paragraphs"][0] + ", source: " + instance["sub-paragraphs"][1]]
+                    else:
+                        neighbours = ["title: , source: " + instance["sub-paragraphs"]]
                 elif fix_newsqa and "sub_paragraph" in instance:
                     neighbours = ["title: , source: " + instance["sub_paragraph"]]
                 else:
@@ -139,6 +143,7 @@ def eli5_preprocess(data_file):
             #         print(i, "more than one")
             #     print("found provenance", item["provenance"], "\n")
     return data
+
 
 def load_incontext_fewshot_samples(data_file, n_shot):
     with open(data_file, "r") as f:
@@ -229,19 +234,19 @@ class FtDataset(torch.utils.data.Dataset):
 
         if self.args.retro_add_retriever:
             return build_retro_training_sample_v2(sample,
-                                               self.max_seq_length,  # needed for padding
-                                               self.pad_id, self.eos_id,
-                                               self.dataset_name,
-                                               self.args.ft_neighbours,
-                                               self.args.shuffle_topn)
+                                                  self.max_seq_length,  # needed for padding
+                                                  self.pad_id, self.eos_id,
+                                                  self.dataset_name,
+                                                  self.args.ft_neighbours,
+                                                  self.args.shuffle_topn)
         else:
             return build_normal_training_sample_v2(sample,
-                                self.max_seq_length,  # needed for padding
-                                self.pad_id, self.eos_id,
-                                self.dataset_name,
-                                self.args.ft_neighbours,
-                                self.args.shuffle_topn,
-                                self.fewshot_list)
+                                                   self.max_seq_length,  # needed for padding
+                                                   self.pad_id, self.eos_id,
+                                                   self.dataset_name,
+                                                   self.args.ft_neighbours,
+                                                   self.args.shuffle_topn,
+                                                   self.fewshot_list)
 
 
 def reformat_prompt_v1(query, neighbours, dataset_name, ft_neighbours, \
@@ -253,7 +258,8 @@ def reformat_prompt_v1(query, neighbours, dataset_name, ft_neighbours, \
         # print(dataset_name, system + query)
         return input_tokens
 
-    short_span_with_context = ["drop", "NarrativeQA", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq"]
+    short_span_with_context = ["drop", "NarrativeQA", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq",
+                               "tqa", "quac"]
     yes_no_without_context = ["BoolQ"]
     multichoices = [""]
     formatted_dataset_name = ["doc2dial", "quac", "qrecc", "sharc"]
@@ -270,8 +276,12 @@ def reformat_prompt_v1(query, neighbours, dataset_name, ft_neighbours, \
         else:
             user = "{} Answer the above question with a long complete answer.".format(query)
 
-        dialogue_format = "User: {}\n\nAssistant:"
-        dialogue_turn = dialogue_format.format(user)
+        if dataset_name in short_span_with_context:
+            dialogue_format = "User: {}\n\nAssistant: The answer is"
+            dialogue_turn = dialogue_format.format(user)
+        else:
+            dialogue_format = "User: {}\n\nAssistant:"
+            dialogue_turn = dialogue_format.format(user)
 
     if ft_neighbours > 0:
         # if shuffle_topn:
@@ -299,9 +309,22 @@ def reformat_prompt_v1(query, neighbours, dataset_name, ft_neighbours, \
     return input_tokens
 
 
-def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
-    max_output_len, tokenizer, max_seq_length):
+def flan_format(system, context, dialogue_turn, template_id=0):
+    templates = [
+        "{}User: Answer based on context:\n\n{}{}",
+        "{}User: {}Answer this question based on the article: {}",
+        "{}User: {}{}",
+        "{}User: {}Answer this question: {}",
+        "{}User: Read this article and answer this question {}{}",
+        "{}User: {}Based on the above article, answer a question. {}",
+        "{}User: Context: {}Question: {}"
+    ]
+    template = templates[template_id - 1].format(system, context, dialogue_turn)
+    return template
 
+
+def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
+                       max_output_len, tokenizer, max_seq_length, template_id=0):
     # system = "System: This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\n"
     system = "System: This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions based on the context. The assistant should also indicate when the answer cannot be found in the context.\n\n"
 
@@ -310,7 +333,8 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
         # print(dataset_name, system + query)
         return input_tokens
 
-    short_span_with_context = ["drop", "NarrativeQA", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq", "BioASQ", "DuoRC_ParaphraseRC", "TextbookQA"]
+    short_span_with_context = ["drop", "NarrativeQA", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq",
+                               "BioASQ", "DuoRC_ParaphraseRC", "TextbookQA", "tqa"]
     yes_no_without_context = ["boolq", "multirc"]
     multichoices = ["race"]
     # multi-turn qa datasets
@@ -322,16 +346,32 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
         dialogue_turn = query
     else:
         if dataset_name in short_span_with_context:
-            user = "Answer the following question with a short span. {}".format(query)
+            if template_id == 0:
+                user = "Answer the following question with a short span. {}".format(query)
+            else:
+                user = query
         elif dataset_name in yes_no_without_context:
             user = "Answer the following question with True or False. {}".format(query)
         elif dataset_name in multichoices:
             user = "Answer the following question by selecting one of the provided options. {}".format(query)
         else:
-            user = "Please give a full and complete answer for the question. {}".format(query)
+            if template_id == 0:
+                user = "Please give a full and complete answer for the question. {}".format(query)
+            else:
+                user = query
 
-        dialogue_format="User: {}\n\nAssistant:"
-        dialogue_turn = dialogue_format.format(user)
+        if dataset_name in short_span_with_context:
+            if template_id == 0:
+                dialogue_format = "User: {}\n\nAssistant: The answer is"
+            else:
+                dialogue_format = "{}\n\nAssistant: The answer is"
+            dialogue_turn = dialogue_format.format(user)
+        else:
+            if template_id == 0:
+                dialogue_format = "User: {}\n\nAssistant:"
+            else:
+                dialogue_format = "{}\n\nAssistant:"
+            dialogue_turn = dialogue_format.format(user)
 
     if ft_neighbours > 0:
         # if shuffle_topn:
@@ -348,7 +388,10 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
         context_tokens = context_tokens[:max_seq_length - max_output_len - len(dialogue_tokens) - len(system_tokens)]
         context = tokenizer.detokenize(context_tokens)
 
-        all_input = system + context + dialogue_turn
+        if template_id == 0:
+            all_input = system + context + dialogue_turn
+        else:
+            all_input = flan_format(system, context, dialogue_turn, template_id=template_id)
         input_tokens = tokenizer.tokenize(all_input)
     else:
         all_input = system + dialogue_turn
@@ -360,12 +403,12 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
 
 
 def reformat_prompt_with_fewshot_samples(query, neighbours, dataset_name, ft_neighbours, fewshot_list, \
-    max_output_len, tokenizer, max_seq_length, multiturn_max_fewshot=3):
-
+                                         max_output_len, tokenizer, max_seq_length, multiturn_max_fewshot=3):
     # system = "System: This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\n"
     system = "System: This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions based on the context. The assistant should also indicate when the answer cannot be found in the context.\n\n"
 
-    short_span_with_context = ["drop", "NarrativeQA", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq", "BioASQ", "DuoRC_ParaphraseRC", "TextbookQA"]
+    short_span_with_context = ["drop", "NarrativeQA", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq",
+                               "BioASQ", "DuoRC_ParaphraseRC", "TextbookQA"]
     yes_no_without_context = ["boolq", "multirc"]
     multichoices = ["race"]
     # multi-turn qa datasets
@@ -392,7 +435,7 @@ def reformat_prompt_with_fewshot_samples(query, neighbours, dataset_name, ft_nei
             instruction = "Please give a full and complete answer for the question."
             user = instruction + " " + query
 
-        dialogue_format="User: {}\n\nAssistant:"
+        dialogue_format = "User: {}\n\nAssistant:"
         dialogue_turn = dialogue_format.format(user)
 
     multiturn_dataset_name = formatted_dataset_name + ["quiet_cockatoo"]
@@ -410,7 +453,7 @@ def reformat_prompt_with_fewshot_samples(query, neighbours, dataset_name, ft_nei
             assert instruction is not None
             formatted_sample = "User: " + instruction + " " + question + "\n\nAssistant: " + answer
 
-        fewshot_prompt += "Sample %d:\n\n" % (i+1)
+        fewshot_prompt += "Sample %d:\n\n" % (i + 1)
         fewshot_prompt += formatted_sample + "\n\n"
     fewshot_prompt += "Assistant should follow the answer formats from the aboved samples and give a response to the following user's question.\n\n"
 
@@ -433,7 +476,9 @@ def reformat_prompt_with_fewshot_samples(query, neighbours, dataset_name, ft_nei
         dialogue_tokens = tokenizer.tokenize(dialogue_turn)
         system_tokens = tokenizer.tokenize(system)
         fewshot_tokens = tokenizer.tokenize(fewshot_prompt)
-        context_tokens = context_tokens[:max_seq_length - max_output_len - len(dialogue_tokens) - len(fewshot_tokens) - len(system_tokens)]
+        context_tokens = context_tokens[
+                         :max_seq_length - max_output_len - len(dialogue_tokens) - len(fewshot_tokens) - len(
+                             system_tokens)]
         context = tokenizer.detokenize(context_tokens)
 
         ## already try to put fewshot_prompt between system and context, results are not good
@@ -445,19 +490,17 @@ def reformat_prompt_with_fewshot_samples(query, neighbours, dataset_name, ft_nei
 
     # print(dataset_name, all_input)
 
-    return  input_tokens
-
+    return input_tokens
 
 
 def build_normal_training_sample_v2(sample,
-                          max_seq_length,
-                          pad_id,
-                          eos_id,
-                          dataset_name,
-                          ft_neighbours=1,
-                          shuffle_topn=False,
-                          fewshot_list=None):
-
+                                    max_seq_length,
+                                    pad_id,
+                                    eos_id,
+                                    dataset_name,
+                                    ft_neighbours=1,
+                                    shuffle_topn=False,
+                                    fewshot_list=None):
     # unpack tokens
     query, answer, neighbours = sample
 
@@ -466,7 +509,8 @@ def build_normal_training_sample_v2(sample,
     output_tokens = tokenizer.tokenize(answer)
 
     # input_tokens = reformat_prompt_v1(query, neighbours, dataset_name, ft_neighbours, len(output_tokens), tokenizer, max_seq_length)
-    input_tokens = reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, len(output_tokens), tokenizer, max_seq_length)
+    input_tokens = reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, len(output_tokens), tokenizer,
+                                      max_seq_length)
     # print(answer)
 
     # print(repr(tokenizer.detokenize(input_tokens)), repr(tokenizer.detokenize(output_tokens)), dataset_name)
@@ -481,13 +525,14 @@ def build_normal_training_sample_v2(sample,
     }
     return train_sample
 
+
 def build_retro_training_sample_v2(sample,
-                                    max_seq_length,
-                                    pad_id,
-                                    eos_id,
-                                    dataset_name,
-                                    ft_neighbours=1,
-                                    shuffle_topn=False):
+                                   max_seq_length,
+                                   pad_id,
+                                   eos_id,
+                                   dataset_name,
+                                   ft_neighbours=1,
+                                   shuffle_topn=False):
     # unpack tokens
     query, answer, neighbours = sample
 
@@ -510,7 +555,8 @@ def build_retro_training_sample_v2(sample,
     retro_args = get_retro_args()
     n_chunks_per_sample = 2
     num_neighbors = args.retro_num_neighbors
-    neighbor_tokens = np.zeros([n_chunks_per_sample, num_neighbors, retro_args.retro_gpt_retrieved_length], dtype=np.int64)
+    neighbor_tokens = np.zeros([n_chunks_per_sample, num_neighbors, retro_args.retro_gpt_retrieved_length],
+                               dtype=np.int64)
     # print("neighbor_tokens.shape", neighbor_tokens.shape)
 
     train_sample = {

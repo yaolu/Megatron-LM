@@ -97,7 +97,8 @@ def add_text_generate_args(parser):
                         help='setting ckpt step manually')
     group.add_argument("--use-retrieved-neighbours", action='store_true', default=False,
                        help='Use retrieved neighbours')
-    
+    group.add_argument('--template-id', type=int, default=0,
+                        help='template id for generation,')
     # in-context few-shot
     group.add_argument("--incontext-fewshot", default=False, action='store_true', help="use in-context few-shot")
     group.add_argument("--n-shot", type=int, default=None, help='number of fewshot samples')
@@ -153,7 +154,8 @@ def generate_samples_conditional(model):
                     if args.incontext_fewshot:
                         input_tokens = reformat_prompt_with_fewshot_samples(query, neighbours, args.task, args.ft_neighbours, fewshot_list, max_target_len, tokenizer, args.seq_length)
                     else:
-                        input_tokens = reformat_prompt_v2(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
+                        # input_tokens = reformat_prompt_v2(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
+                        input_tokens = reformat_prompt_v2(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length, template_id=args.template_id)
                     # input_tokens = reformat_prompt_v1(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
                     raw_text = tokenizer.detokenize(input_tokens)
                     print(raw_text)

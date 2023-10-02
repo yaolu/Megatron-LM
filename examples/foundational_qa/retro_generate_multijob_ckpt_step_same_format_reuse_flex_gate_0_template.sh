@@ -14,6 +14,7 @@ ft_neighbours=${10}
 model_card=${11}
 ckpt=${12}
 K=${13}
+template=${14}
 
 . ./examples/qa/common_args.sh
 . ./examples/foundational_qa/gen_input.sh
@@ -30,7 +31,7 @@ fi
 #SAVENAME="${TASK}_${model_card}_same_format_ctx${ft_neighbours}_${model_size}_${global_bsz}_${lr}"
 #CHECKPOINT_PATH="${QA_HOME}/checkpoints/applications/${SAVENAME}"
 CHECKPOINT_PATH=${ckpt}
-sample_output_file="${CHECKPOINT_PATH}/flex_gate_0_reuse_foundational_qa_${TASK}_${ft_neighbours}_${K}_${model_size}_${split}_${sampling}_${gen_start}_${num_gen}_${ckpt_step}.txt"
+sample_output_file="${CHECKPOINT_PATH}/template_${template}_flex_gate_0_reuse_foundational_qa_${TASK}_${ft_neighbours}_${K}_${model_size}_${split}_${sampling}_${gen_start}_${num_gen}_${ckpt_step}.txt"
 
 DIR=`pwd`
 
@@ -48,8 +49,10 @@ GEN_ARGS="$SAMPLE_ARGS \
           --retro-workdir ${RETRO_WORKDIR} \
           --retro-add-retriever \
           --retro-num-neighbors ${K} \
+          --use-retrieved-neighbours \
           --reuse-top \
           --retro-attention-gate 0 \
+          --template-id ${template} \
           "
 
 DISTRIBUTED_ARGS="--nproc_per_node ${mod_par} \

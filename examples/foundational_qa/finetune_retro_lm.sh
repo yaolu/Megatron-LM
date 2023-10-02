@@ -19,10 +19,10 @@ num_nodes=1
 num_gpus=8
 
 if [[ $model_size == "2b" ]]; then
-    num_nodes=4
+    num_nodes=1
     min_lr=0.00000001
 fi
-
+r
 if [[ $model_size == "8b" ]]; then
     num_nodes=4
     min_lr=0.00000001

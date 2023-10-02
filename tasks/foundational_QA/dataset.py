@@ -402,6 +402,10 @@ def pad_neighbours_for_query_only(args, nb_tokens, pad_id, ft_neighbours):
         else:
             nb_token =  nb_token + [pad_id] * (r - len(nb_token))
         neighbours_tokens.append(nb_token)
+    print("len(nb_tokens)", len(nb_tokens))
+    print("len(neighbours_tokens)", len(neighbours_tokens))
+    print("args.retro_num_neighbors", args.retro_num_neighbors)
+
     if len(neighbours_tokens) < args.retro_num_neighbors:
         assert ValueError("neighbours are not enough, to do: add empty ones and create mask for those empty ones")
     neighbours_tokens = np.array(neighbours_tokens)

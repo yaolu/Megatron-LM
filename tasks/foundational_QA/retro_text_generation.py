@@ -99,6 +99,8 @@ def add_text_generate_args(parser):
                        help='Use short format QA')
     group.add_argument("--use-retrieved-neighbours", action='store_true', default=False,
                        help='Use retrieved neighbours')
+    group.add_argument('--template-id', type=int, default=0,
+                        help='template id for generation,')
     return parser
 
 def generate_samples_conditional(model):
@@ -149,7 +151,7 @@ def generate_samples_conditional(model):
                     # print("neighbours_array", neighbours_array)
                     print("neighbours_array.shape", neighbours_array.shape)
                     tokenizer = get_tokenizer()
-                    input_tokens = reformat_prompt_v2(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
+                    input_tokens = reformat_prompt_v2(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length, template_id=args.template_id)
                     # input_tokens = reformat_prompt_v1(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
                     raw_text = tokenizer.detokenize(input_tokens)
                     print(raw_text)
