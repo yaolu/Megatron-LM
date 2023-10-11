@@ -276,12 +276,31 @@ if __name__ == "__main__":
     # evaluate_ems(prediction_file, ground_truth_file)
 
 
+    ## 8b fm
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-multi-1.1t-gtc/generate_8b_test_greedy_0_400_1417624.concat.txt.period.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-gpt-fitting/generate_8b_test_greedy_0_400_97656.concat.txt.period.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-noseqpar/generate_8b_test_greedy_0_400_97656.concat.txt.period.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-multi-3.5t/generate_nq_8b_test_greedy_0_400_1127656.concat.txt.period.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-gpt-fitting-3.5t/generate_nq_8b_test_greedy_0_400_48828.concat.txt.period.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-3.5t/generate_nq_8b_test_greedy_0_400_48828.concat.txt.period.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
     # TQA
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/TQA/test.json"
 
     # SFT
     prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/retro-sft_full-qc-pp1_same_format_ctx1_43b_128_5e-6/flex_reuse_foundational_qa_tqa_5_2_43b_test_greedy_0_2500_1000.txt"
-    evaluate_ems(prediction_file, ground_truth_file)
+    # evaluate_ems(prediction_file, ground_truth_file)
     #
     # ## 800M
     #

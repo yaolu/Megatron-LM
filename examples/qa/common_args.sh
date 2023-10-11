@@ -54,7 +54,6 @@ GPT_ARGS="--apply-layernorm-1p \
         --no-position-embedding \
         --use-rotary-position-embeddings \
         --rotary-percent 0.5 \
-        --swiglu \
         --attention-dropout 0.0 \
         --hidden-dropout 0.0 \
         --pipeline-model-parallel-size $pip_par \
@@ -78,6 +77,14 @@ GPT_ARGS="--apply-layernorm-1p \
 "
         # --weight-decay 1.0e-1
         # --lr-decay-iters 10000 \
+
+if [[ $ckpt == *3.5t* ]]; then
+  GPT_ARGS+=" --squared-relu \
+  "
+else
+  GPT_ARGS+=" --swiglu \
+  "
+fi
 
 if [[ $model_card == *-pp1* ]]; then
     GPT_ARGS+=" --use-distributed-optimizer"

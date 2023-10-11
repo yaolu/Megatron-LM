@@ -8,6 +8,7 @@ global_bsz=$3
 lr=$4
 ft_neighbours=$5
 model_card=$6
+ckpt=$7
 TASK=none
 
 train_iters=1000
@@ -25,7 +26,7 @@ if [[ $model_size == "2b" ]]; then
 fi
 
 if [[ $model_size == "8b" ]]; then
-    num_nodes=1
+    num_nodes=16
     lr=5e-6
     min_lr=5e-6
     PRETRAINED_CHECKPOINT="/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-noseqpar"
@@ -81,6 +82,7 @@ if [[ $model_card == *quiet_cockatoo* ]]; then
     PRETRAINED_CHECKPOINT=$quiet_cockatoo
 fi
 
+PRETRAINED_CHECKPOINT=${ckpt}
 
 if [[ -d "$CHECKPOINT_PATH" ]]; then
     options="$options \

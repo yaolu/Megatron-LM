@@ -8,6 +8,7 @@ global_bsz=$3
 lr=$4
 ft_neighbours=$5
 model_card=$6
+ckpt=$7
 TASK=none
 
 train_iters=1000
@@ -72,9 +73,11 @@ if [[ $model_card == *quiet_cockatoo* ]]; then
     PRETRAINED_CHECKPOINT=$quiet_cockatoo
 fi
 
-if [[ $model_card == *gpt-fitting* ]]; then
-    PRETRAINED_CHECKPOINT="/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-gpt-fitting-tp8pp1"
-fi
+#if [[ $model_card == *gpt-fitting* ]]; then
+#    PRETRAINED_CHECKPOINT="/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-gpt-fitting-tp8pp1"
+#fi
+PRETRAINED_CHECKPOINT=${ckpt}
+
 
 if [[ -d "$CHECKPOINT_PATH" ]]; then
     options="$options \

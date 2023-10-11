@@ -616,10 +616,14 @@ class TransformerLanguageModel(MegatronModule):
                 if '.attention.' in key:
                     state_dict_self_attention[key.replace(".attention.",
                         ".self_attention.")] = state_dict_[key]
+                elif '_norm' in key:
+                    state_dict_self_attention[key.replace("_norm",
+                        "_layernorm")] = state_dict_[key]
                 else:
                     state_dict_self_attention[key] = state_dict_[key]
             state_dict_ = state_dict_self_attention
 
+            # print("state_dict_:", state_dict_.keys())
             self.encoder.load_state_dict(state_dict_, strict=strict)
 
         # Pooler.

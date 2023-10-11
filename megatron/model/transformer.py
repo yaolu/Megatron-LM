@@ -769,8 +769,7 @@ class ParallelTransformerLayer(MegatronModule):
                 output_layer_init_method,
                 layer_number,
                 attention_type=AttnType.cross_attn)
-        if self.layer_type in (LayerType.decoder,
-                               LayerType.retro_decoder,
+        if self.layer_type in (LayerType.retro_decoder,
                                LayerType.retro_decoder_with_retriever,
                                LayerType.retro_encoder) or args.retro_as_gpt:
             # Layernorm on the attention output.

@@ -287,6 +287,17 @@ prediction_files.append(ckpt_path + "/chunk_1k_generate_nq_8b_test_greedy_0_3610
 prediction_files.append(ckpt_path + "/gate_0_chunk_1k_generate_nq_8b_test_greedy_0_3610_1000.txt")
 prediction_files.append("/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/sft_pp1_same_format_ctx1_8b_128_5e-6/generate_nq_8b_test_greedy_0_3610_1000.txt")
 
+prediction_files = []
+ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-multi-3.5t"
+prediction_files.append(ckpt_path + "/generate_nq_8b_test_greedy_0_400_1127656.concat.txt")
+ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-3.5t"
+prediction_files.append(ckpt_path + "/generate_nq_8b_test_greedy_0_400_48828.concat.txt")
+ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-gpt-fitting-3.5t"
+prediction_files.append(ckpt_path + "/generate_nq_8b_test_greedy_0_400_48828.concat.txt")
+# prediction_files.append("/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-multi-1.1t-gtc/generate_8b_test_greedy_0_400_1417624.concat.txt")
+# prediction_files.append("/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-noseqpar/generate_8b_test_greedy_0_400_97656.concat.txt")
+# prediction_files.append("/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-gpt-fitting/generate_8b_test_greedy_0_400_97656.concat.txt")
+
 # In[8]:
 
 
@@ -360,9 +371,11 @@ def truncate_period(prediction_file):
         lines = f.readlines()
     print(len(lines))
 
-    with open(prediction_file + ".period.txt", "w") as f:
+    with (open(prediction_file + ".period.txt", "w")) as f:
         for line in lines:
-            line = line[:line.find(".")].strip().replace("\n", " ")
+            line = line[:line.find(".")]
+            # line = line[line.find(":") + 1:]
+            line = line.strip().replace("\n", " ")
             f.write(line + '\n')
     print(prediction_file + ".period.txt")
 
