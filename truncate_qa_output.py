@@ -298,7 +298,9 @@ prediction_files.append(ckpt_path + "/generate_nq_8b_test_greedy_0_400_48828.con
 # prediction_files.append("/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-noseqpar/generate_8b_test_greedy_0_400_97656.concat.txt")
 # prediction_files.append("/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-gpt-fitting/generate_8b_test_greedy_0_400_97656.concat.txt")
 
-# In[8]:
+prediction_files = []
+ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-3.5t-lr-1e-5"
+prediction_files.append(ckpt_path + "/generate_nq_8b_test_greedy_0_400_48828.concat.txt")
 
 
 # In[11]:

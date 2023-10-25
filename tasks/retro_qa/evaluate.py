@@ -277,14 +277,14 @@ if __name__ == "__main__":
 
 
     ## 8b fm
-    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-multi-1.1t-gtc/generate_8b_test_greedy_0_400_1417624.concat.txt.period.txt"
-    evaluate_ems(prediction_file, ground_truth_file)
-
-    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-gpt-fitting/generate_8b_test_greedy_0_400_97656.concat.txt.period.txt"
-    evaluate_ems(prediction_file, ground_truth_file)
-
-    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-noseqpar/generate_8b_test_greedy_0_400_97656.concat.txt.period.txt"
-    evaluate_ems(prediction_file, ground_truth_file)
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-multi-1.1t-gtc/generate_8b_test_greedy_0_400_1417624.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
+    #
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-gpt-fitting/generate_8b_test_greedy_0_400_97656.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
+    #
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-noseqpar/generate_8b_test_greedy_0_400_97656.concat.txt.period.txt"
+    # evaluate_ems(prediction_file, ground_truth_file)
 
     prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-multi-3.5t/generate_nq_8b_test_greedy_0_400_1127656.concat.txt.period.txt"
     evaluate_ems(prediction_file, ground_truth_file)
@@ -293,6 +293,9 @@ if __name__ == "__main__":
     evaluate_ems(prediction_file, ground_truth_file)
 
     prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-3.5t/generate_nq_8b_test_greedy_0_400_48828.concat.txt.period.txt"
+    evaluate_ems(prediction_file, ground_truth_file)
+
+    prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-8b-pretraining-retro-fitting-3.5t-lr-1e-5/generate_nq_8b_test_greedy_0_400_48828.concat.txt.period.txt"
     evaluate_ems(prediction_file, ground_truth_file)
 
     # TQA

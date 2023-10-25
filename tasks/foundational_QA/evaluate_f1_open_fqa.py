@@ -6,6 +6,9 @@ from evaluate import read_prediction_withprob, read_prediction
 import regex
 import numpy as np
 
+from evaluate_nlg import evaluate_nlg
+
+
 def normalize_answer(s):
     def remove_articles(text):
         return regex.sub(r'\b(a|an|the)\b', ' ', text)
@@ -159,90 +162,106 @@ def evaluate_f1(ground_truth_file, prediction_file, reduced_test_only=False):
     # compute_f1_score(predicted_answers, groundtruth_answer)
         
 if __name__ == "__main__":
-    # model_name = "qa_blendv12_pp1_same_format_ctx1_43b_64_3e-7"
-    # model_name = "gpt3-43b-pretraining-gpt-fitting-tp8pp1"
-    # model_name = "sft_gpt-fitting-pp1_same_format_ctx1_43b_128_5e-6"
-    # model_name = "retro-sft_pp1_same_format_ctx1_43b_128_5e-6"
-    model_name = "retro-multiturn_qa_blendv2_retro_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    model_name = "multiturn_qa_blendv2_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    model_name = "multiturn_qa_blendv2_nemo_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    model_name = "sft_pp1_same_format_ctx1_43b_128_5e-6"
+    # model_name = "qa_blendv12_pp1_same_format_ctx1_8b_64_3e-7"
+    # model_name = "gpt3-8b-pretraining-gpt-fitting-tp8pp1"
+    # model_name = "sft_gpt-fitting-pp1_same_format_ctx1_8b_128_5e-6"
+    # model_name = "retro-sft_pp1_same_format_ctx1_8b_128_5e-6"
+    model_name = "retro-multiturn_qa_blendv2_retro_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_8b_64_3e-7"
+    model_name = "multiturn_qa_blendv2_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_8b_64_3e-7"
+    model_name = "multiturn_qa_blendv2_nemo_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_8b_64_3e-7"
+    model_name = "sft_pp1_same_format_ctx1_8b_128_5e-6"
     model_name = "megatron_sft_quiet_cockatoo_tp8_pp1"
-    model_name = "multiturn_qa_blend_commercial_v5_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    model_name = "multiturn_qa_blend_commercial_v5_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_bak_same_format_ctx1_43b_64_3e-7"
-    model_name = "multiturn_qa_blend_commercial_v5_nemo_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    model_name = "sft_full-qc-pp1_same_format_ctx1_43b_128_5e-6"
-    model_name = "sft_gpt-fitting-full-qc-pp1_same_format_ctx1_43b_128_5e-6"
-    # model_name = "multiturn_qa_blend_commercial_v5_gpt_fitting_1e-8_conv_full_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    # model_name = "multiturn_qa_blend_commercial_v5_gpt_1e-8_conv_full_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
+    model_name = "multiturn_qa_blend_commercial_v5_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_8b_64_3e-7"
+    model_name = "multiturn_qa_blend_commercial_v5_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_bak_same_format_ctx1_8b_64_3e-7"
+    model_name = "multiturn_qa_blend_commercial_v5_nemo_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_8b_64_3e-7"
+    model_name = "sft_full-qc-pp1_same_format_ctx1_8b_128_5e-6"
+    model_name = "sft_gpt-fitting-full-qc-pp1_same_format_ctx1_8b_128_5e-6"
+    model_name = "sft_pp1-3.5t_same_format_ctx1_8b_128_5e-6"
+    model_name = "sft_gpt-fitting-pp1-3.5t_same_format_ctx1_8b_128_5e-6"
+    # model_name = "multiturn_qa_blend_commercial_v5_gpt_fitting_1e-8_conv_full_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_8b_64_3e-7"
+    # model_name = "multiturn_qa_blend_commercial_v5_gpt_1e-8_conv_full_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_8b_64_3e-7"
+    model_name = "multiturn_qa_blendv2_gpt-fitting_1e-8_conv_quiet_cockatoo_pp1_addmultiturn-3.5t_same_format_ctx1_8b_64_3e-7"
+    # model_name = "multiturn_qa_blendv2_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn-3.5t_same_format_ctx1_8b_64_3e-7"
+    # model_name = "multiturn_qa_blend_commercial_v15_gpt-fitting_1e-8_conv_quiet_cockatoo_pp1_addmultiturn-commercial-3.5t_same_format_ctx1_8b_64_3e-7"
+    # model_name = "multiturn_qa_blend_commercial_v15_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn-commercial-3.5t_same_format_ctx1_8b_64_3e-7"
+
     ckpt_path = "/lustre/fsw/adlr/adlr-nlp/boxinw/sft-megatron-lm/checkpoints/applications/{}/".format(model_name)
+    
     n_ctx = 5
     iter = 3000
-    iter = 1000
+    # iter = 1000
 
-    prediction_file = ckpt_path + "/qrecc_1_generate_43b_test_greedy_0_20000_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/qrecc_1_generate_8b_test_greedy_0_20000_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/multi-turn-qa/qrecc/qrecc_ftdragon_chatgptgen7k_chunk150_QA_test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
     evaluate_ems(prediction_file, ground_truth_file)
 
-    prediction_file = ckpt_path + "/nq_5_generate_43b_test_greedy_0_20000_{}_ret.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/nq_5_generate_8b_test_greedy_0_20000_{}_ret.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/NQ/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
     evaluate_ems(prediction_file, ground_truth_file)
 
-    prediction_file = ckpt_path + "/tqa_5_generate_43b_test_greedy_0_20000_{}_ret.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/tqa_5_generate_8b_test_greedy_0_20000_{}_ret.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/TQA/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
     evaluate_ems(prediction_file, ground_truth_file)
 
-    prediction_file = ckpt_path + "/newsqa_1_generate_43b_test_greedy_0_20000_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/newsqa_1_generate_8b_test_greedy_0_20000_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/newsqa/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/squad2.0_1_generate_43b_test_greedy_0_20000_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/squad2.0_1_generate_8b_test_greedy_0_20000_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/squad2.0/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
     evaluate_ems(prediction_file, ground_truth_file)
 
-    prediction_file = ckpt_path + "/squad1.1_1_generate_43b_test_greedy_0_20000_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/squad1.1_1_generate_8b_test_greedy_0_20000_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/squad1.1/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
     evaluate_ems(prediction_file, ground_truth_file)
 
-    prediction_file = ckpt_path + "/ROPES_1_generate_43b_test_greedy_0_20000_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/ROPES_1_generate_8b_test_greedy_0_20000_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/ROPES/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/Quoref_1_generate_43b_test_greedy_0_20000_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/Quoref_1_generate_8b_test_greedy_0_20000_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/Quoref/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/NarrativeQA_1_generate_43b_test_greedy_0_20000_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/NarrativeQA_1_generate_8b_test_greedy_0_20000_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/NarrativeQA/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/drop_1_generate_43b_test_greedy_0_20000_{}.txt.v2".format(iter)
+    prediction_file = ckpt_path + "/drop_1_generate_8b_test_greedy_0_20000_{}.txt.v2".format(iter)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/drop/test.json"
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
+
+    prediction_file = ckpt_path + "//doc2dial_1_generate_8b_test_greedy_0_20000_{}.txt.v2".format(iter)
+    # prediction_file = "/lustre/fsw/adlr/adlr-nlp/boxinw/checkpoints/retro-nvllm/gpt3-43b-pretraining-retro-fitting-noseqpar-pp1-distributed/test.txt"
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/multi-turn-qa/doc2dial/doc2dial_ftdragon_chatgptgen7k_chunk150_QA_test.json"
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
+    evaluate_nlg(ground_truth_file, prediction_file)
 
 
