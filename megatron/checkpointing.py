@@ -237,7 +237,7 @@ def save_checkpoint(iteration, model, optimizer, opt_param_scheduler,
             )
         ) and train_dataloader and hasattr(train_dataloader, 'save_state_rank'):
         # Only do this on each first data parallel rank (i.e. pipeline rank 0, model parallel rank 0)
-        
+
         dp_rank = mpu.get_data_parallel_rank() if torch.distributed.is_initialized() else 0
         print(f'saving dataloader checkpoint at iteration {iteration:7d} to {args.dataloader_save}')
         # Must save state over all data parallel ranks!
@@ -327,7 +327,7 @@ def save_checkpoint(iteration, model, optimizer, opt_param_scheduler,
             # RNG states.
             if not args.no_save_rng:
                 visual_state_dict["rng_state"] = rng_state
-            
+
             #save
             ensure_directory_exists(v_checkpoint_name)
             torch.save(visual_state_dict, v_checkpoint_name)
@@ -585,6 +585,7 @@ def load_args_from_checkpoint(args, load_arg='load'):
     _set_arg('swiglu', force=True)
     _set_arg('untie_embeddings_and_output_weights', force=True)
     _set_arg('apply_layernorm_1p', force=True)
+    _set_arg('normalization', force=True)
     _set_arg('tokenizer_type')
     _set_arg('padded_vocab_size')
     if checkpoint_version < 3.0:
@@ -633,6 +634,7 @@ def load_visual_checkpoint(model, load_arg='load', strict=True, load_iter=None):
         if args.align_to_old:
             new_state_dict = {}
             for key, values in state_dict['model'].items():
+                key = key.replace("layernorm", "norm")
                 if "rel_pos" in key and ("core_attention" not in key):
                     key = key.replace("self_attention", "self_attention.core_attention")
                 new_state_dict[key] = values
@@ -733,12 +735,12 @@ def load_checkpoint(model, optimizer, opt_param_scheduler, load_arg='load', stri
         print_rank_0('could not find arguments in the checkpoint ...')
 
     if args.no_load_optim and args.add_gated_xattn:
-        print("Load from GPT.... Initialize the input layer norm to xattn layer norm.")
+        print("Load from GPT.... Initialize the input norm to xattn norm.")
         for i in range(args.num_layers):
-            state_dict['model']['language_model']['encoder']['layers.%d.xattn_layernorm.weight' % (i)] = \
-                state_dict['model']['language_model']['encoder']['layers.%d.input_layernorm.weight' % (i)]
-            state_dict['model']['language_model']['encoder']['layers.%d.xattn_layernorm.bias' % (i)] = \
-                state_dict['model']['language_model']['encoder']['layers.%d.input_layernorm.bias' % (i)]
+            state_dict['model']['language_model']['encoder']['layers.%d.xattn_norm.weight' % (i)] = \
+                state_dict['model']['language_model']['encoder']['layers.%d.input_norm.weight' % (i)]
+            state_dict['model']['language_model']['encoder']['layers.%d.xattn_norm.bias' % (i)] = \
+                state_dict['model']['language_model']['encoder']['layers.%d.input_norm.bias' % (i)]
 
     # Model.
     if len(model) == 1:
