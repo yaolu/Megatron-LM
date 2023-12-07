@@ -106,7 +106,7 @@ def get_checkpoint_name(checkpoints_path, iteration, release=False,
                             f'mp_rank_{tensor_rank:02d}')
     else:
         common_path = os.path.join(checkpoints_path, directory,
-                        f'mp_rank_{tensor_rank:02d}_{pipeline_rank:03d}')
+                f'mp_rank_{tensor_rank:02d}_{pipeline_rank:03d}')
 
     return os.path.join(common_path, save_basename)
 
@@ -120,14 +120,28 @@ def find_checkpoint_rank_0(checkpoints_path, iteration, release=False):
     """Finds the checkpoint for rank 0 without knowing if we are using
     pipeline parallelism or not.
 
-    Since the checkpoint naming scheme changes if pipeline parallelism
-    is present, we need to look for both naming schemes if we don't
-    know if the checkpoint has pipeline parallelism.
+    Since the checkpoint naming scheme changes if pipeline
+    parallelism is present, we need to look for both naming schemes if
+    we don't know if the checkpoint has pipeline.
     """
 
     # Look for checkpoint with no pipelining
     filename = get_checkpoint_name(checkpoints_path, iteration, release,
                                    pipeline_parallel=False,
+                                   tensor_rank=0, pipeline_rank=0)
+    if os.path.isfile(filename):
+        return filename
+
+    # Look for checkpoint with no pipelining
+    filename = get_checkpoint_name(checkpoints_path, iteration, release,
+                                   pipeline_parallel=False,
+                                   tensor_rank=0, pipeline_rank=0)
+    if os.path.isfile(filename):
+        return filename
+
+    # Look for checkpoint with pipelining
+    filename = get_checkpoint_name(checkpoints_path, iteration, release,
+                                   pipeline_parallel=True,
                                    tensor_rank=0, pipeline_rank=0)
     if os.path.isfile(filename):
         return filename
@@ -169,7 +183,7 @@ def read_metadata(tracker_filename):
 
     # Get the max iteration retrieved across the ranks.
     if torch.distributed.is_initialized():
-        iters_cuda = torch.cuda.LongTensor([iteration])
+        iters_cuda = torch.tensor([iteration], dtype=torch.long, device='cuda')
         torch.distributed.all_reduce(iters_cuda, op=torch.distributed.ReduceOp.MAX)
         max_iter = iters_cuda[0].item()
 
@@ -267,7 +281,7 @@ def save_checkpoint(iteration, model, optimizer, opt_param_scheduler,
     checkpoint_name = get_checkpoint_name(args.save, iteration)
 
     # Save distributed optimizer's custom parameter state.
-    if args.use_distributed_optimizer:
+    if args.use_distributed_optimizer and not args.no_save_optim and optimizer is not None:
         optim_checkpoint_name = \
             get_distributed_optimizer_checkpoint_name(checkpoint_name)
         ensure_directory_exists(optim_checkpoint_name)
@@ -275,7 +289,7 @@ def save_checkpoint(iteration, model, optimizer, opt_param_scheduler,
 
     # Collect args, model, RNG.
     if not torch.distributed.is_initialized() \
-       or mpu.get_data_parallel_rank() == 0:
+        or mpu.get_data_parallel_rank() == 0:
 
         # Arguments, iteration, and model.
         state_dict = {}
@@ -575,6 +589,8 @@ def load_args_from_checkpoint(args, load_arg='load'):
     _set_arg('ffn_hidden_size')
     _set_arg('seq_length')
     _set_arg('num_attention_heads')
+    _set_arg('num_query_groups', force=True)
+    _set_arg('group_query_attention', force=True)
     _set_arg('kv_channels')
     _set_arg('max_position_embeddings')
     _set_arg('position_embedding_type', force=True)
@@ -584,7 +600,7 @@ def load_args_from_checkpoint(args, load_arg='load'):
     _set_arg('add_bias_linear', force=True)
     _set_arg('swiglu', force=True)
     _set_arg('untie_embeddings_and_output_weights', force=True)
-    _set_arg('apply_layernorm_1p', force=True)
+    _set_arg('apply_layernorm_1', force=True)
     _set_arg('normalization', force=True)
     _set_arg('tokenizer_type')
     _set_arg('padded_vocab_size')
@@ -643,8 +659,7 @@ def load_visual_checkpoint(model, load_arg='load', strict=True, load_iter=None):
             model.load_state_dict(state_dict['model'], strict=strict)
 
         if args.SAM_randinit and args.no_load_optim and args.visual_arch.startswith('SAM'):
-            if isinstance(model, torch.nn.parallel.DistributedDataParallel) or \
-                isinstance(model, megatron.model.distributed.DistributedDataParallel):
+            if isinstance(model, torch.nn.parallel.DistributedDataParallel):
                 model_component = model.module
 
                 if  isinstance(model_component, Float16Module):
@@ -735,12 +750,16 @@ def load_checkpoint(model, optimizer, opt_param_scheduler, load_arg='load', stri
         print_rank_0('could not find arguments in the checkpoint ...')
 
     if args.no_load_optim and args.add_gated_xattn:
-        print("Load from GPT.... Initialize the input norm to xattn norm.")
+        print("Load from GPT.... Initialize the input layer norm to xattn layer norm.")
         for i in range(args.num_layers):
-            state_dict['model']['language_model']['encoder']['layers.%d.xattn_norm.weight' % (i)] = \
-                state_dict['model']['language_model']['encoder']['layers.%d.input_norm.weight' % (i)]
-            state_dict['model']['language_model']['encoder']['layers.%d.xattn_norm.bias' % (i)] = \
-                state_dict['model']['language_model']['encoder']['layers.%d.input_norm.bias' % (i)]
+            try:
+                state_dict['model']['language_model']['encoder']['layers.%d.xattn_layernorm.weight' % (i)] = \
+                    state_dict['model']['language_model']['encoder']['layers.%d.input_layernorm.weight' % (i)]
+                state_dict['model']['language_model']['encoder']['layers.%d.xattn_layernorm.bias' % (i)] = \
+                    state_dict['model']['language_model']['encoder']['layers.%d.input_layernorm.bias' % (i)]
+            except:
+                state_dict['model']['language_model']['encoder']['layers.%d.xattn_norm.weight' % (i)] = \
+                    state_dict['model']['language_model']['encoder']['layers.%d.input_norm.weight' % (i)]
 
     # Model.
     if len(model) == 1:
@@ -798,7 +817,6 @@ def load_checkpoint(model, optimizer, opt_param_scheduler, load_arg='load', stri
             if 'rng_state' in state_dict:
                 # access rng_state for data parallel rank
                 if args.data_parallel_random_init:
-
                     rng_state = state_dict['rng_state'][mpu.get_data_parallel_rank()]
                 else:
                     rng_state = state_dict['rng_state'][0]

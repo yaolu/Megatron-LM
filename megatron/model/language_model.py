@@ -441,7 +441,7 @@ class PerceiverResampler(MegatronModule):
                     encoder_output_sam = self.affine[0](vision_inputs['sam'])
                 else:
                     encoder_output_sam = vision_inputs['sam']
-                
+
                 if self.has_affine_dict['clip']:
                     encoder_output_clip = self.affine[-1](vision_inputs['clip'])
                 else:

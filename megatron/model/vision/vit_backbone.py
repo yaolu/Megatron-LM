@@ -200,7 +200,7 @@ class CLIPViTBackbone(MegatronModule):
                 torch.nn.init.zeros_(self.cls_token)
             self.position_ids = torch.arange(self.seq_length).expand(1, -1).cuda()
 
-            self.pre_layernorm = LayerNorm(
+            self.pre_norm = LayerNorm(
                 self.hidden_size,
                 eps=args.layernorm_epsilon,
                 no_persist_layer_norm=args.no_persist_layer_norm)
@@ -278,7 +278,7 @@ class CLIPViTBackbone(MegatronModule):
             hidden_states = input
 
         hidden_states = hidden_states.transpose(0, 1).contiguous()
-        hidden_states = self.pre_layernorm(hidden_states, vit_layer_norm=True)
+        hidden_states = self.pre_norm(hidden_states, vit_layer_norm=True)
         hidden_states = self.transformer(hidden_states, None)
 
         if self.single_token_output:
@@ -425,15 +425,15 @@ class HybridSAMCLIPBackbone(MegatronModule):
         super().__init__(config=config, share_embeddings_and_output_weights=not args.untie_embeddings_and_output_weights)
 
         validate_visual_args_sam(args)
-        self.sam_model = SAMViTBackbone(config, pre_process=pre_process, 
+        self.sam_model = SAMViTBackbone(config, pre_process=pre_process,
                                    post_process=post_process)
 
         validate_visual_args_clip(args)
-        self.clip_model = CLIPViTBackbone(config, pre_process=pre_process, 
+        self.clip_model = CLIPViTBackbone(config, pre_process=pre_process,
                                    post_process=post_process)
 
     def forward(self, input_dict):
- 
+
         # SAM model
         sam_hidden_states = self.sam_model(input_dict['sam'])
 

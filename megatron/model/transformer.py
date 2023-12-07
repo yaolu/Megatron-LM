@@ -120,7 +120,6 @@ class ParallelMLP(MegatronModule):
         self.add_bias = config.add_bias_linear or is_vit
         self.is_vit = is_vit
 
-        ffn_hidden_size = config.ffn_hidden_size
         if is_vit:
             hidden_size = args.visual_hidden_size
             ffn_hidden_size = args.visual_ffn_hidden_size
@@ -130,9 +129,10 @@ class ParallelMLP(MegatronModule):
 
         if config.gated_linear_unit and (not is_vit):
             ffn_hidden_size *= 2
+
         # Project to 4h. If using swiglu double the output width, see https://arxiv.org/pdf/2002.05202.pdf
         self.dense_h_to_4h = tensor_parallel.ColumnParallelLinear(
-            hidden_size,
+            config.hidden_size,
             ffn_hidden_size,
             config=config,
             init_method=config.init_method,
@@ -561,14 +561,15 @@ class ParallelAttention(MegatronModule):
         self.use_rel_pos = use_rel_pos
         self.window_size = window_size
 
-        self.group_query_attention = args.group_query_attention
+        self.group_query_attention = args.group_query_attention if (attention_type == AttnType.self_attn and not is_vit) else False
         self.num_query_groups = args.num_query_groups
 
-        query_projection_size = config.kv_channels * config.num_attention_heads
         if self.group_query_attention:
             kv_projection_size = args.kv_channels * args.num_query_groups
+            query_projection_size = 2 * config.kv_channels * config.num_attention_heads
         else:
             kv_projection_size = args.kv_channels * args.num_attention_heads
+            query_projection_size = config.kv_channels * config.num_attention_heads
 
         self.use_flash_attn = args.use_flash_attn \
             and attention_type == AttnType.self_attn \
@@ -587,7 +588,7 @@ class ParallelAttention(MegatronModule):
         if is_vit:
             self.hidden_size = args.visual_hidden_size
             self.num_attention_heads = args.visual_num_attention_heads
-            projection_size = args.visual_hidden_size
+            query_projection_size = args.visual_hidden_size
             if args.visual_arch.startswith("SAM"):
                 self.window_size = window_size
                 self.input_size = args.img_h // args.patch_dim if window_size == 0 else window_size
@@ -597,7 +598,6 @@ class ParallelAttention(MegatronModule):
         else:
             self.hidden_size = config.hidden_size
             self.num_attention_heads = config.num_attention_heads
-            projection_size = config.kv_channels * self.num_attention_heads
 
         # Per attention head and per partition values.
         world_size = mpu.get_tensor_model_parallel_world_size()
@@ -625,7 +625,7 @@ class ParallelAttention(MegatronModule):
         if attention_type == AttnType.self_attn:
             self.query_key_value = tensor_parallel.ColumnParallelLinear(
                 self.hidden_size,
-                query_projection_size + 2 * kv_projection_size,
+                3 * self.hidden_size if is_vit else query_projection_size + 2 * kv_projection_size,
                 config=config,
                 bias=default_bias,
                 skip_bias_add=skip_bias_add,
@@ -654,7 +654,6 @@ class ParallelAttention(MegatronModule):
                 # bias=config.add_bias_linear or is_vit,
                 gather_output=False)
 
-
         self.core_attention = CoreAttention(self.layer_number, config,
                                             is_vit=self.is_vit, window_size=self.window_size,
                                             use_rel_pos=self.use_rel_pos
@@ -668,7 +667,7 @@ class ParallelAttention(MegatronModule):
 
         # Output.
         self.dense = tensor_parallel.RowParallelLinear(
-            projection_size,
+            query_projection_size,
             self.hidden_size,
             config=config,
             init_method=config.output_layer_init_method,
@@ -711,6 +710,7 @@ class ParallelAttention(MegatronModule):
     def forward(self, hidden_states, attention_mask,
                 encoder_output=None, inference_params=None,
                 rotary_pos_emb=None):
+
         if self.is_vit:
             rotary_pos_emb = None
         # hidden_states: [sq, b, h]
@@ -739,19 +739,37 @@ class ParallelAttention(MegatronModule):
         # =====================
 
         if self.attention_type == AttnType.self_attn:
-            # Attention heads [sq, b, h] --> [sq, b, (np * 3 * hn)]
+
+            # Attention heads [sq, b, h] --> [sq, b, ng * (np/ng + 2) * hn)]
             mixed_x_layer, _ = self.query_key_value(hidden_states)
 
-            # [sq, b, (np * 3 * hn)] --> [sq, b, np, 3 * hn]
-            new_tensor_shape = mixed_x_layer.size()[:-1] + \
-                (self.num_attention_heads_per_partition,
-                 3 * self.hidden_size_per_attention_head)
+            # [sq, b, hp] --> [sq, b, ng, (np/ng + 2) * hn]
+            new_tensor_shape = mixed_x_layer.size()[:-1] + (
+                self.num_query_groups_per_partition,
+                (
+                    (self.num_attention_heads_per_partition // self.num_query_groups_per_partition + 2)
+                    * self.hidden_size_per_attention_head
+                ),
+            )
             mixed_x_layer = mixed_x_layer.view(*new_tensor_shape)
 
-            # [sq, b, np, 3 * hn] --> 3 [sq, b, np, hn]
+            # [sq, b, ng, (np/ng + 2) * hn] --> [sq, b, ng, np/ng * hn], [sq, b, ng, hn], [sq, b, ng, hn]
             (query_layer,
-             key_layer,
-             value_layer) = tensor_parallel.split_tensor_along_last_dim(mixed_x_layer, 3)
+            key_layer,
+            value_layer) = torch.split(
+                mixed_x_layer,
+                [
+                    (
+                        self.num_attention_heads_per_partition // self.num_query_groups_per_partition
+                        * self.hidden_size_per_attention_head
+                    ),
+                    self.hidden_size_per_attention_head,
+                    self.hidden_size_per_attention_head
+                ],
+                dim=3)
+
+            # [sq, b, ng, np/ng * hn] -> [sq, b, np, hn] -
+            query_layer = query_layer.view(query_layer.size(0), query_layer.size(1), -1, self.hidden_size_per_attention_head)
         else:
 
             # Attention heads [sk, b, h] --> [sk, b, (np * 2 * hn)]
@@ -1165,7 +1183,7 @@ class ParallelTransformerLayer(MegatronModule):
         self.is_vit = is_vit
         self.window_size = window_size
 
-        self.apply_residual_connection_post_layernorm \
+        self.apply_residual_connection_post_norm \
             = config.apply_residual_connection_post_layernorm
 
         self.bf16 = config.bf16
@@ -1196,7 +1214,7 @@ class ParallelTransformerLayer(MegatronModule):
         self.drop_path = DropPath(drop_path_rate) if drop_path_rate > 0.0 else None
 
         # norm on the attention output
-        self.post_attention_layernorm = get_norm(config, is_vit=is_vit)
+        self.post_attention_norm = get_norm(config, is_vit=is_vit)
 
         # Cross attention.
         if self.layer_type in (LayerType.decoder,
@@ -1208,7 +1226,7 @@ class ParallelTransformerLayer(MegatronModule):
                 layer_number,
                 attention_type=AttnType.cross_attn)
             # norm on the attention output.
-            self.post_inter_attention_layernorm = get_norm(config, is_vit=is_vit)
+            self.post_inter_attention_norm = get_norm(config, is_vit=is_vit)
 
         # MLP
         if args.num_experts is not None:
@@ -1524,7 +1542,7 @@ class ParallelTransformerLayer(MegatronModule):
                 rotary_pos_emb=rotary_pos_emb)
 
         # Residual connection.
-        if self.apply_residual_connection_post_rnorm:
+        if self.apply_residual_connection_post_norm:
             residual = norm_output
         else:
             residual = hidden_states
