@@ -550,6 +550,10 @@ def core_transformer_config_from_args(args):
     if args.init_method_xavier_uniform:
         kw_args['init_method'] = torch.nn.init.xavier_uniform_
         kw_args['scaled_init_method'] = torch.nn.init.xavier_uniform_
+    if args.group_query_attention:
+        kw_args['num_query_groups'] = args.num_query_groups
+    else:
+        kw_args['num_query_groups'] = None
     kw_args['fp8'] = args.fp8_e4m3 or args.fp8_hybrid
     kw_args['fp8_e4m3'] = args.fp8_e4m3
     kw_args['fp8_margin'] = args.fp8_hybrid
@@ -711,6 +715,9 @@ def _add_network_size_args(parser):
                        'attention. This is set to '
                        '   args.hidden_size // args.num_attention_heads '
                        'if not provided.')
+    group.add_argument('--group-query-attention', action='store_true',
+                          help='Use group-query attention.')
+    group.add_argument('--num-query-groups', type=int, default=1)
     group.add_argument('--max-position-embeddings', type=int, default=None,
                        help='Maximum number of position embeddings to use. '
                        'This is the size of position embedding.')
@@ -729,6 +736,9 @@ def _add_network_size_args(parser):
     group.add_argument('--make-vocab-size-divisible-by', type=int, default=128,
                        help='Pad the vocab size to be divisible by this value.'
                        'This is added for computational efficieny reasons.')
+    group.add_argument('--normalization', default='LayerNorm',
+                       choices=['LayerNorm', 'RMSNorm'],
+                       help='Which normalization technique to use.')
     group.add_argument('--layernorm-epsilon', type=float, default=1e-5,
                        help='Layer norm epsilon.')
     group.add_argument('--apply-layernorm-1p', action='store_true',
@@ -1294,6 +1304,7 @@ def _add_data_args(parser):
                                 'GPT2BPETokenizer',
                                 'SentencePieceTokenizer',
                                 'GPTSentencePieceTokenizer',
+                                'Llama2Tokenizer',
                                 'NullTokenizer'],
                        help='What type of tokenizer to use.')
     group.add_argument('--tokenizer-model', type=str, default=None,
