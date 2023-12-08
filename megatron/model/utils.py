@@ -68,8 +68,8 @@ def get_norm(config, is_vit=False):
             sequence_parallel=config.sequence_parallel,
             apply_layernorm_1p=args.apply_layernorm_1p)
     elif args.normalization == "RMSNorm":
-        if args.apply_layernorm_1p:
-            raise NotImplementedError('RMSNorm does not currently support the layernorm_1p formulation.')
+        # if args.apply_layernorm_1p:
+        #     raise NotImplementedError('RMSNorm does not currently support the layernorm_1p formulation.')
 
         return RMSNorm(dim=config.hidden_size,
                        eps=config.layernorm_epsilon,

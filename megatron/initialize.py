@@ -46,6 +46,8 @@ def initialize_megatron(
     if args.use_checkpoint_args or args_defaults.get("use_checkpoint_args", False):
         assert args.load is not None, "--use-checkpoints-args requires --load argument"
         load_args_from_checkpoint(args)
+        args.num_query_groups = 1
+        args.group_query_attention = False
 
     validate_args(args, args_defaults)
 
