@@ -46,6 +46,8 @@ def initialize_megatron(
     if args.use_checkpoint_args or args_defaults.get("use_checkpoint_args", False):
         assert args.load is not None, "--use-checkpoints-args requires --load argument"
         load_args_from_checkpoint(args)
+        # NOTE(jbarker): This override is required for loading Llama2 7B megatron checkpoint
+        # It's temporary and needs to be removed for Llama2 >7B support
         args.num_query_groups = 1
         args.group_query_attention = False
 
