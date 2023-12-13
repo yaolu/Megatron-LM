@@ -573,7 +573,7 @@ train.bert.345m_tp4_pp1_1node_50steps:
     TIME_LIMIT: "10:00"
     TEST_LEVEL: NIGHTLY_TESTS
 
-train.bert.345m_tp2_pp2_1node_50steps:
+train.bert_core.345m_tp2_pp2_1node_50steps:
   <<: *selene-test-launcher
   variables:
     <<: [*VARS]
@@ -581,10 +581,11 @@ train.bert.345m_tp2_pp2_1node_50steps:
     TP_SIZE: 2
     PP_SIZE: 2
     NUM_NODES: 1
+    USE_CORE: 1
     MAX_STEPS: 50
     TEST_LEVEL: MR_TESTS
 
-train.bert.345m_tp1_pp2_1node_50steps:
+train.bert_core.345m_tp1_pp2_1node_50steps:
   <<: *selene-test-launcher
   variables:
     <<: [*VARS]
@@ -592,10 +593,11 @@ train.bert.345m_tp1_pp2_1node_50steps:
     TP_SIZE: 1
     PP_SIZE: 2
     NUM_NODES: 1
+    USE_CORE: 1
     MAX_STEPS: 50
     TEST_LEVEL: NIGHTLY_TESTS
 
-train.bert.345m_tp1_pp4_1node_50steps:
+train.bert_core.345m_tp1_pp4_1node_50steps:
   <<: *selene-test-launcher
   variables:
     <<: [*VARS]

@@ -241,9 +241,11 @@ class DistributedOptimizer(MixedPrecisionOptimizer):
         local_param_group_map = {}
         group_ranges = [ {"params": []} for _ in param_groups ]
         for model_gbuf_range_map in model_gbuf_ranges:
-            for dtype, gbuf_range_map_for_all_buckets in model_gbuf_range_map.items():
-                for gbuf_range_map in gbuf_range_map_for_all_buckets:
-                    for param in gbuf_range_map["param_map"]:
+            for dtype, gbuf_range_map in model_gbuf_range_map.items():
+                for param in gbuf_range_map["param_map"]:
+                    if param not in world_param_group_map:
+                        continue
+                    else:
                         group_index = world_param_group_map[param]
                         group_range = group_ranges[group_index]
                         group_range["params"].append(param)
@@ -366,7 +368,7 @@ class DistributedOptimizer(MixedPrecisionOptimizer):
 
     def __init__(self, optimizer, clip_grad, log_num_zeros_in_grad,
                  check_for_nan_in_grad, params_have_main_grad, fp16,
-                 bf16, params_dtype, grad_scaler, models):
+                 bf16, params_dtype, grad_scaler, models,visual_model=None):
         """
         See top of class definition for argument descriptions.
 
@@ -380,7 +382,7 @@ class DistributedOptimizer(MixedPrecisionOptimizer):
         super().__init__(
             optimizer, clip_grad, log_num_zeros_in_grad,
             check_for_nan_in_grad, params_have_main_grad,
-            fp16, bf16, params_dtype, grad_scaler, models)
+            fp16, bf16, params_dtype, grad_scaler, models,visual_model=visual_model)
 
         assert isinstance(optimizer, Adam), \
             "Only Adam currently supported, due to checkpointing requirements."

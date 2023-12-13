@@ -307,6 +307,10 @@ def _load_checkpoint(queue, args):
     }
     if norm_has_bias:
         message["bias"] = models[0].language_model.encoder.final_norm.bias.data
+<<<<<<< HEAD:tools/checkpoint/loader_megatron.py
+=======
+
+>>>>>>> 2282062b41a603c7083c2107e119875ebc06490e:tools/checkpoint_loader_megatron.py
     queue_put("final norm", message)
 
     if md.output_layer:
@@ -333,6 +337,10 @@ def _load_checkpoint(queue, args):
         }
         if norm_has_bias:
             message["norm bias"] = models[0].lm_head.norm.bias.data
+<<<<<<< HEAD:tools/checkpoint/loader_megatron.py
+=======
+
+>>>>>>> 2282062b41a603c7083c2107e119875ebc06490e:tools/checkpoint_loader_megatron.py
         queue_put("lm head", message)
 
         if md.bert_binary_head:

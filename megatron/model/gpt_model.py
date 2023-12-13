@@ -29,15 +29,16 @@ def post_language_model_processing(lm_output, labels, logit_weights,
     else:
         # [b s] => [s b]
         labels = labels.transpose(0,1).contiguous()
+
         if fp16_lm_cross_entropy:
             assert output.dtype == torch.half
             loss = tensor_parallel.vocab_parallel_cross_entropy(output, labels)
         else:
             loss = tensor_parallel.vocab_parallel_cross_entropy(output.float(), labels)
-        
+
         # [s b] => [b, s]
         loss = loss.transpose(0,1).contiguous()
-        return loss
+        return loss, output.argmax(-1).transpose(0, 1)
 
 
 class GPTModel(MegatronModule):
@@ -65,7 +66,7 @@ class GPTModel(MegatronModule):
             encoder_attn_mask_type=AttnMaskType.causal,
             pre_process=self.pre_process,
             post_process=self.post_process)
-        
+
         if not args.untie_embeddings_and_output_weights:
             self.initialize_word_embeddings()
 
@@ -93,7 +94,8 @@ class GPTModel(MegatronModule):
                 lm_output, labels,
                 self.language_model.output_layer.weight if self.untie_embeddings_and_output_weights else self.shared_embedding_or_output_weight(),
                 self.parallel_output,
-                self.fp16_lm_cross_entropy)
+                self.fp16_lm_cross_entropy,
+                self.use_auxilary_loss)
         else:
             return lm_output
 

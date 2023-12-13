@@ -12,9 +12,10 @@ from megatron.core.models.common.embeddings.rotary_pos_embedding import RotaryEm
 
 from .enums import AttnMaskType, LayerType
 from .module import MegatronModule
-from .transformer import ParallelTransformer
+from .transformer import ParallelTransformer, ParallelAffineLayer
 from .utils import get_linear_layer
 from .utils import init_method_normal, scaled_init_method_normal
+from megatron.arguments import validate_visual_args_sam, validate_visual_args_clip
 
 
 def parallel_lm_logits(input_, word_embeddings_weight, parallel_output,
@@ -47,6 +48,18 @@ def parallel_lm_logits(input_, word_embeddings_weight, parallel_output,
 
     return tensor_parallel.gather_from_tensor_model_parallel_region(logits_parallel)
 
+def get_perceiver(config):
+    if config.init_method is None:
+        config.init_method = init_method_normal(config.init_method_std)
+
+    if config.output_layer_init_method is None:
+        config.output_layer_init_method = scaled_init_method_normal(config.init_method_std,
+                                                                    config.num_layers)
+    vision_model = PerceiverResampler(config)
+    # key used for checkpoints.
+    vision_model_key = 'vision_model'
+
+    return vision_model, vision_model_key
 
 def get_language_model(config, num_tokentypes, add_pooler,
                        encoder_attn_mask_type,
@@ -311,6 +324,132 @@ class Embedding(MegatronModule):
                 print('***WARNING*** expected tokentype embeddings in the '
                       'checkpoint but could not find it', flush=True)
 
+class PerceiverResampler(MegatronModule):
+
+    def __init__(self, config):
+
+        super(PerceiverResampler, self).__init__()
+        args = get_args()
+        super(PerceiverResampler, self).__init__(share_embeddings_and_output_weights=not args.untie_embeddings_and_output_weights)
+
+        self.init_method = config.init_method
+        self.output_layer_init_method = config.output_layer_init_method
+
+        assert args.perceiver_type != "self-attn" and args.perceiver_type != "cross-attn"
+        if args.perceiver_type == "self-attn":
+            self.encoder = ParallelOCRPerceiverResampler(
+                    config,
+                    self.init_method,
+                    self.output_layer_init_method,
+            )
+        elif args.perceiver_type == "cross-attn":
+            self.encoder = ParallelPerceiverResampler(
+                    config,
+                    self.init_method,
+                    self.output_layer_init_method,
+            )
+        else:
+            if args.use_hybrid_visual_backbones:
+                affine = []
+                self.has_affine_dict = {'sam': False, 'clip': False}
+
+                args = validate_visual_args_sam(args)
+                if args.affine:
+                    self.has_affine_dict['sam'] = True
+                    affine.append(ParallelAffineLayer(config))
+
+                args = validate_visual_args_clip(args)
+                if args.affine:
+                    self.has_affine_dict['clip'] = True
+                    affine.append(ParallelAffineLayer(config))
+
+                if len(affine) > 0:
+                    self.affine = torch.nn.ModuleList(affine)
+                else:
+                    self.affine = None
+            else:
+                if args.affine:
+                    self.affine = ParallelAffineLayer(config)
+                else:
+                    self.affine = None
+            self.encoder = None
+        self._encoder_key = 'encoder'
+
+    def set_input_tensor(self, input_tensor):
+        """ See megatron.model.transformer.set_input_tensor()"""
+
+        # This is usually handled in schedules.py but some inference code still
+        # gives us non-lists or None
+        if not isinstance(input_tensor, list):
+            input_tensor = [input_tensor]
+
+        assert len(input_tensor) == 1, \
+            'input_tensor should only be length 1 for stage with only encoder'
+        if self.encoder:
+            self.encoder.set_input_tensor(input_tensor[0])
+
+    def state_dict_for_save_checkpoint(self, destination=None, prefix='',
+                                       keep_vars=False):
+        """For easy load."""
+        state_dict_ = {}
+
+        if self.encoder:
+            state_dict_[self._encoder_key] \
+                = self.encoder.state_dict_for_save_checkpoint(
+                    destination, prefix, keep_vars)
+        else:
+            if self.affine:
+                state_dict_["_affine"] = self.affine.state_dict(destination, prefix, keep_vars)
+
+        return state_dict_
+
+    def load_state_dict(self, state_dict, strict=True):
+        """Customized load."""
+        # Encoder.
+
+        if self.encoder:
+            if self._encoder_key in state_dict:
+                state_dict_ = state_dict[self._encoder_key]
+
+            state_dict_self_attention = {}
+            for key in state_dict_.keys():
+                if '.attention.' in key:
+                    state_dict_self_attention[key.replace(".attention.",
+                        ".self_attention.")] = state_dict_[key]
+                else:
+                    state_dict_self_attention[key] = state_dict_[key]
+            state_dict_ = state_dict_self_attention
+            self.encoder.load_state_dict(state_dict_, strict=strict)
+        else:
+            if self.affine:
+                if "_affine" in state_dict:
+                    self.affine.load_state_dict(state_dict["_affine"], strict=strict)
+
+    def forward(self, vision_inputs, inference_params=None):
+        # Run encoder.
+        if self.encoder:
+            encoder_output = self.encoder(vision_inputs,
+                inference_params=inference_params)
+        else:
+            if isinstance(vision_inputs, dict):
+                if self.has_affine_dict['sam']:
+                    encoder_output_sam = self.affine[0](vision_inputs['sam'])
+                else:
+                    encoder_output_sam = vision_inputs['sam']
+
+                if self.has_affine_dict['clip']:
+                    encoder_output_clip = self.affine[-1](vision_inputs['clip'])
+                else:
+                    encoder_output_clip = vision_inputs['clip']
+
+                encoder_output = {'sam': encoder_output_sam, 'clip': encoder_output_clip}
+            else:
+                if self.affine:
+                    encoder_output = self.affine(vision_inputs)
+                else:
+                    encoder_output = vision_inputs
+
+        return encoder_output
 
 class TransformerLanguageModel(MegatronModule):
     """Transformer language model.
@@ -461,7 +600,7 @@ class TransformerLanguageModel(MegatronModule):
                 enc_dec_attn_mask=None, tokentype_ids=None,
                 inference_params=None,
                 pooling_sequence_index=0,
-                enc_hidden_states=None, output_enc_hidden=False):
+                enc_hidden_states=None, output_enc_hidden=False, vision_inputs=None):
 
         # Encoder embedding.
         if self.pre_process:
@@ -496,7 +635,7 @@ class TransformerLanguageModel(MegatronModule):
                     retriever_input=retriever_input,
                     retriever_attn_mask=retriever_attn_mask,
                     inference_params=inference_params,
-                    rotary_pos_emb=rotary_pos_emb)
+                    rotary_pos_emb=rotary_pos_emb, vision_inputs=vision_inputs)
             else:
                 encoder_output = self.encoder_hidden_state
         else:
@@ -541,6 +680,7 @@ class TransformerLanguageModel(MegatronModule):
         """For easy load."""
 
         state_dict_ = {}
+
         if self.pre_process:
             state_dict_[self._embedding_key] \
                 = self.embedding.state_dict_for_save_checkpoint(prefix=prefix,

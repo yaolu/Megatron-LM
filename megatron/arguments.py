@@ -58,6 +58,98 @@ def parse_args(extra_args_provider=None, ignore_unknown_args=False):
 
     return args
 
+def validate_visual_args(args):
+    if args.visual_path:
+        if args.visual_arch == "B_32":
+            args.visual_num_layers = 12
+            args.visual_patch_dim = 32
+            args.visual_hidden_size = 768
+            args.visual_ffn_hidden_size = 3072
+            args.visual_num_attention_heads = 12
+            args.visual_output_size = 768
+            args.quickgelu = True
+            args.global_attn_freq = 1
+            assert args.SAM_randinit is False or args.use_hybrid_visual_backbones, "args.SAM-randinit is not compatible with CLIP backbone"
+        elif args.visual_arch == "L_14":
+            args.visual_num_layers = 24
+            args.visual_patch_dim = 14
+            args.visual_hidden_size = 1024
+            args.visual_ffn_hidden_size = 4096
+            args.visual_num_attention_heads = 16
+            args.visual_output_size = 1024
+            args.v_jitter = 0
+            args.crop_middle = False
+            if args.img_h == 336:
+                args.quickgelu = True
+            else:
+                args.quickgelu = False
+            args.global_attn_freq = 1
+            assert args.SAM_randinit is False or args.use_hybrid_visual_backbones, "args.SAM-randinit is not compatible with CLIP backbone"
+        elif args.visual_arch == "G_14":
+            args.visual_num_layers = 48
+            args.visual_patch_dim = 14
+            args.visual_hidden_size = 1664
+            args.visual_ffn_hidden_size = 8192
+            args.visual_num_attention_heads = 16
+            args.visual_output_size = 1664
+            args.quickgelu = False
+            args.global_attn_freq = 1
+            assert args.SAM_randinit is False or args.use_hybrid_visual_backbones, "args.SAM-randinit is not compatible with CLIP backbone"
+        elif args.visual_arch == "SAM_B":
+            args.visual_num_layers = 12
+            args.visual_patch_dim = 16
+            args.visual_hidden_size = 768
+            args.visual_ffn_hidden_size = 3072
+            args.visual_num_attention_heads = 12
+            args.visual_output_size = 256
+            args.window_size = 14
+            args.quickgelu = False
+            args.global_attn_freq = 3
+        elif args.visual_arch == "SAM_L":
+            args.visual_num_layers = 24 #6
+            args.visual_patch_dim = 16
+            args.visual_hidden_size = 1024
+            args.visual_ffn_hidden_size = 4096
+            args.visual_num_attention_heads = 16
+            args.visual_output_size = 256
+            args.window_size = 14
+            args.quickgelu = False
+            args.global_attn_freq = 6
+
+        if args.save:
+            args.visual_save = args.save + "/" + args.visual_type
+            if os.path.exists(args.visual_save):
+                args.visual_path = args.visual_save
+
+        if args.visual_output_size != args.hidden_size:
+            args.affine = True
+        else:
+            args.affine = False
+
+    return args
+
+def validate_visual_args_sam(args):
+
+    args.visual_path = args.visual_path_sam
+    args.visual_arch = args.visual_arch_sam
+    args.visual_type = args.visual_type_sam
+    args.img_h, args.img_w = args.img_h_sam, args.img_w_sam
+
+    args = validate_visual_args(args)
+
+    return args
+
+def validate_visual_args_clip(args):
+
+    args.visual_path = args.visual_path_clip
+    args.visual_arch = args.visual_arch_clip
+    args.visual_type = args.visual_type_clip
+    args.img_h, args.img_w = args.img_h_clip, args.img_w_clip
+
+    args = validate_visual_args(args)
+
+    return args
+
 def validate_args(args, defaults={}):
     # Tensor model parallel size.
     args.tensor_model_parallel_size = min(
@@ -186,6 +278,22 @@ def validate_args(args, defaults={}):
             if args.rank == 0:
                 print('accumulate and all-reduce gradients in fp32 for '
                       'bfloat16 data type.', flush=True)
+
+    if args.use_hybrid_visual_backbones:
+        args = validate_visual_args_clip(args)
+        args = validate_visual_args_sam(args)
+    else:
+        args = validate_visual_args(args)
+
+    if args.save:
+        if os.path.exists(args.save + "/latest_checkpointed_iteration.txt"):
+            args.load = args.save
+            args.no_load_optim = False
+            args.finetune = False
+
+        args.dataloader_save = os.path.join(args.save, 'dataloader')
+        if os.path.exists(args.dataloader_save):
+            args.dataloader_path = args.dataloader_save
 
     if args.rank == 0:
         print('using {} for parameters ...'.format(args.params_dtype),
@@ -352,7 +460,10 @@ def validate_args(args, defaults={}):
 
     # Disable bias gelu fusion if we are disabling bias altogether
     if not args.add_bias_linear:
+        args.disable_bias_linear = True
         args.bias_gelu_fusion = False
+    else:
+        args.disable_bias_linear = False
 
     # Retro checks.
     if args.retro_add_retriever:
@@ -586,6 +697,44 @@ def _add_network_size_args(parser):
     group.add_argument('--ffn-hidden-size', type=int, default=None,
                        help='Transformer Feed-Forward Network hidden size. '
                        'This is set to 4*hidden-size if not provided')
+    group.add_argument('--visual-path', type=str, default=None,
+                       help='Path for pretrained visual model.')
+    group.add_argument('--visual-arch', type=str, default=None,
+                       help='Visual model architecture. [B_32, L_14, G_14, SAM_B, SAM_L]')
+    group.add_argument('--visual-type', type=str, default=None,
+                       help='Visual model type. [vit, sam]')
+    group.add_argument('--visual-hidden_size', type=int, default=None,
+                       help='Output hidden size for visual model.')
+
+    group.add_argument('--use-hybrid-visual-backbones', action='store_true',
+                       help='Use hybrid vision backbones.')
+    group.add_argument('--visual-path-sam', type=str, default=None,
+                       help='Path for pretrained visual model.')
+    group.add_argument('--visual-arch-sam', type=str, default=None,
+                       help='Visual model architecture. [B/32, L/14, G/14, SAM_B, SAM_L]')
+    group.add_argument('--visual-type-sam', type=str, default=None,
+                       help='Visual model type. [vit, sam]')
+    group.add_argument('--img-h-sam', type=int, default=1024,
+                       help='image height for vision backbone')
+    group.add_argument('--img-w-sam', type=int, default=1024,
+                       help='image width for vision backbone')
+    group.add_argument('--xattn-sam-num', type=int, default=1,
+                       help='frequency of sam feature for xattn')
+    group.add_argument('--visual-path-clip', type=str, default=None,
+                       help='Path for pretrained visual model.')
+    group.add_argument('--visual-arch-clip', type=str, default=None,
+                       help='Visual model architecture. [B/32, L/14, G/14, SAM_B, SAM_L]')
+    group.add_argument('--visual-type-clip', type=str, default=None,
+                       help='Visual model type. [vit, sam]')
+    group.add_argument('--img-h-clip', type=int, default=224,
+                       help='image height for vision backbone')
+    group.add_argument('--img-w-clip', type=int, default=224,
+                       help='image width for vision backbone')
+    group.add_argument('--xattn-clip-num', type=int, default=2,
+                       help='frequency of clip feature for xattn')
+
+    group.add_argument('--use-sam-normalization', action='store_true')
+
     group.add_argument('--num-attention-heads', type=int, default=None,
                        help='Number of transformer attention heads.')
     group.add_argument('--kv-channels', type=int, default=None,
@@ -596,7 +745,6 @@ def _add_network_size_args(parser):
     group.add_argument('--group-query-attention', action='store_true',
                           help='Use group-query attention.')
     group.add_argument('--num-query-groups', type=int, default=1)
-
     group.add_argument('--max-position-embeddings', type=int, default=None,
                        help='Maximum number of position embeddings to use. '
                        'This is the size of position embedding.')
@@ -894,7 +1042,7 @@ def _add_training_args(parser):
                        choices=['adam', 'sgd'],
                        help='Optimizer function')
     group.add_argument('--dataloader-type', type=str, default=None,
-                       choices=['single', 'cyclic'],
+                       choices=['single', 'cyclic', 'nvgpt4'],
                        help='Single pass vs multiple pass data loader')
     group.add_argument('--no-async-tensor-model-parallel-allreduce',
                        action='store_false',
@@ -1213,6 +1361,8 @@ def _add_data_args(parser):
                             'They are used for span masking in the T5 model')
     group.add_argument('--seq-length', type=int, default=None,
                        help='Maximum sequence length to process.')
+    group.add_argument('--ds-seq-length', type=int, default=None,
+                       help='Sequence length used for preprocessing text data.')
     group.add_argument('--encoder-seq-length', type=int, default=None,
                        help='Maximum encoder sequence length to process.'
                        'This should be exclusive of --seq-length')
@@ -1249,7 +1399,16 @@ def _add_data_args(parser):
                        'end-of-document token.')
     group.add_argument('--eod-mask-loss', action='store_true',
                        help='Mask loss for the end of document tokens.')
-
+    group.add_argument('--add-gated-xattn', action='store_true')
+    group.add_argument('--add-BOS', action='store_true')
+    group.add_argument('--freeze-ViT', action='store_true')
+    group.add_argument('--freeze-LM', action='store_true')
+    group.add_argument('--num-perceiver-layers', type=int, default=None,
+                       help='Number of perceiver resampler layers.')
+    group.add_argument('--num-latents', type=int, default=None,
+                       help='Number of latent dims')
+    group.add_argument('--dataset-type', type=str, default='index',
+                      choices=['nvgpt4', 'index'])
     return parser
 
 
@@ -1387,6 +1546,7 @@ def _add_vision_args(parser):
                        help='teacher temperature')
     group.add_argument('--dino-warmup-teacher-temp-epochs', type=int, default=30,
                        help='warmup teacher temperaure epochs')
+    group.add_argument('--xattn_everyk', type=int, default=1, help='')
 
     return parser
 

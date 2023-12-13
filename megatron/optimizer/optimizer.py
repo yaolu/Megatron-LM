@@ -57,7 +57,7 @@ class MegatronOptimizer(ABC):
                  log_num_zeros_in_grad,
                  check_for_nan_in_grad,
                  params_have_main_grad,
-                 models):
+                 models, visual_model=None):
 
         """Input optimizer is the base optimizer for example Adam."""
         self.optimizer = optimizer
@@ -71,6 +71,7 @@ class MegatronOptimizer(ABC):
         # 'models' are retained for access to the contiguous grad buffers.
         # (see distributed optimizer)
         self.models = models
+        self.visual_model = visual_model
 
 
     def get_parameters(self):
@@ -217,12 +218,12 @@ class MixedPrecisionOptimizer(MegatronOptimizer):
 
     def __init__(self, optimizer, clip_grad, log_num_zeros_in_grad,
                  check_for_nan_in_grad, params_have_main_grad,
-                 fp16, bf16, params_dtype, grad_scaler, models):
+                 fp16, bf16, params_dtype, grad_scaler, models,visual_model=None):
 
         super().__init__(
             optimizer, clip_grad, log_num_zeros_in_grad,
             check_for_nan_in_grad, params_have_main_grad,
-            models)
+            models,visual_model=visual_model)
 
         self.fp16 = fp16
         self.bf16 = bf16
@@ -376,12 +377,12 @@ class Float16OptimizerWithFloat16Params(MixedPrecisionOptimizer):
 
     def __init__(self, optimizer, clip_grad, log_num_zeros_in_grad,
                  check_for_nan_in_grad, params_have_main_grad, fp16, bf16,
-                 params_dtype, grad_scaler, models):
+                 params_dtype, grad_scaler, models, visual_model=None):
 
         super().__init__(
             optimizer, clip_grad, log_num_zeros_in_grad,
             check_for_nan_in_grad, params_have_main_grad,
-            fp16, bf16, params_dtype, grad_scaler, models)
+            fp16, bf16, params_dtype, grad_scaler, models, visual_model=visual_model)
 
         # ======================
         # main parameter stuff
@@ -470,7 +471,7 @@ class Float16OptimizerWithFloat16Params(MixedPrecisionOptimizer):
             for main_param in main_group:
                 if main_param.grad is not None:
                     main_grads.append(main_param.grad.data)
-        
+
         return main_grads
 
 
@@ -570,12 +571,12 @@ class FP32Optimizer(MegatronOptimizer):
                  log_num_zeros_in_grad,
                  check_for_nan_in_grad,
                  params_have_main_grad,
-                 models):
+                 models, visual_model=None):
 
         super(FP32Optimizer, self).__init__(
             optimizer, clip_grad, log_num_zeros_in_grad,
             check_for_nan_in_grad, params_have_main_grad,
-            models)
+            models,visual_model=visual_model)
 
         self._scale = torch.tensor([1.0], dtype=torch.float, device='cuda')
 

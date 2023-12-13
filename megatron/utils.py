@@ -141,7 +141,7 @@ def print_params_min_max_norm(optimizer, iteration):
 
 
 def check_adlr_autoresume_termination(iteration, model,
-                                      optimizer, opt_param_scheduler):
+                                      optimizer, opt_param_scheduler, train_dataloader=None):
     """Check for autoresume signal and exit if it is received."""
     from megatron.checkpointing import save_checkpoint
 
@@ -151,7 +151,7 @@ def check_adlr_autoresume_termination(iteration, model,
     torch.distributed.barrier()
     if autoresume.termination_requested():
         if args.save:
-            save_checkpoint(iteration, model, optimizer, opt_param_scheduler)
+            save_checkpoint(iteration, model, optimizer, opt_param_scheduler, train_dataloader)
         print_rank_0(">>> autoresume termination request found!")
         if torch.distributed.get_rank() == 0:
             autoresume.request_resume()
@@ -163,7 +163,9 @@ def get_ltor_masks_and_position_ids(data,
                                     eod_token,
                                     reset_position_ids,
                                     reset_attention_mask,
-                                    eod_mask_loss):
+                                    eod_mask_loss,
+                                    question_length=None,
+                                    weights=None):
     """Build masks and position id for left to right model."""
 
     # Extract batch size and sequence length.
@@ -191,6 +193,10 @@ def get_ltor_masks_and_position_ids(data,
     if reset_position_ids:
         position_ids = position_ids.clone()
 
+    if question_length is not None:
+        for b in range(micro_batch_size):
+            loss_mask[b, :question_length[b].item() - 1] = 0.0
+
     if reset_position_ids or reset_attention_mask:
         # Loop through the batches:
         for b in range(micro_batch_size):
@@ -215,6 +221,8 @@ def get_ltor_masks_and_position_ids(data,
 
     # Convert attention mask to binary:
     attention_mask = (attention_mask < 0.5)
+    if weights is not None:
+        loss_mask = loss_mask * weights
 
     return attention_mask, loss_mask, position_ids
 

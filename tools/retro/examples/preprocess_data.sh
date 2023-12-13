@@ -67,6 +67,10 @@ ARGS=" \
     --data-path ${RETRO_GPT_DATA_PATH} \
     --tokenizer-type BertWordPieceLowerCase \
     --vocab-file <path/to/bert/vocab> \
+<<<<<<< HEAD
+=======
+    --data-impl ${RETRO_GPT_DATA_IMPL} \
+>>>>>>> 2282062b41a603c7083c2107e119875ebc06490e
     --split ${RETRO_GPT_SPLIT} \
     --distributed-backend nccl \
     --lr 0.0001 \
@@ -102,6 +106,10 @@ ARGS=" \
     --retro-gpt-eval-interval ${RETRO_GPT_EVAL_INTERVAL} \
     --retro-gpt-eval-iters ${RETRO_GPT_EVAL_ITERS} \
     --retro-gpt-split ${RETRO_GPT_SPLIT} \
+<<<<<<< HEAD
+=======
+    --retro-gpt-data-impl ${RETRO_GPT_DATA_IMPL} \
+>>>>>>> 2282062b41a603c7083c2107e119875ebc06490e
     --retro-gpt-data-path ${RETRO_GPT_DATA_PATH} \
     --retro-index-str ${RETRO_INDEX_STR} \
     --retro-index-ntrain ${RETRO_INDEX_NTRAIN} \

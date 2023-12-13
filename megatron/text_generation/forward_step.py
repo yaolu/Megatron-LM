@@ -13,6 +13,37 @@ from .communication import (
     recv_from_prev_pipeline_rank_)
 
 
+<<<<<<< HEAD
+=======
+
+class InferenceParams:
+    """Inference parameters that are passed to the main model in order
+    to efficienly calculate and store the context during inference."""
+
+    def __init__(self, max_batch_size, max_sequence_len):
+        """Note that offsets are set to zero and we always set the
+        flag to allocate memory. After the first call, make sure to
+        set this flag to False."""
+        self.max_sequence_len = max_sequence_len
+        self.max_batch_size = max_batch_size
+        self.sequence_len_offset = 0
+        self.batch_size_offset = 0
+        self.key_value_memory_dict = {}
+
+    def swap_key_value_dict(self, batch_idx):
+        "swap between batches"
+        if len(self.key_value_memory_dict) == 0:
+            raise ValueError("should not swap when dict in empty")
+
+        for layer_number in self.key_value_memory_dict.keys():
+            inference_key_memory, inference_value_memory = self.key_value_memory_dict[layer_number]
+            assert len(batch_idx) == inference_key_memory.shape[1] ## make sure batch size is the same
+            new_inference_key_memory = inference_key_memory[:, batch_idx]
+            new_inference_value_memory = inference_value_memory[:, batch_idx]
+            self.key_value_memory_dict[layer_number] = (
+                    new_inference_key_memory, new_inference_value_memory)
+
+>>>>>>> 2282062b41a603c7083c2107e119875ebc06490e
 class ForwardStep:
     """Forward step function with all the communications.
     We use a class here to hide the inference parameters
@@ -37,7 +68,7 @@ class ForwardStep:
             args.inference_batch_times_seqlen_threshold
 
 
-    def __call__(self, tokens, position_ids, attention_mask):
+    def __call__(self, tokens, position_ids, attention_mask, vision_inputs=None):
         """Invocation of the forward methods. Note that self.inference_params
         is being modified by the forward step."""
         # Pipelining case.
@@ -57,7 +88,7 @@ class ForwardStep:
                                            tokens,
                                            position_ids,
                                            attention_mask,
-                                           self.inference_params)
+                                           self.inference_params, vision_inputs=vision_inputs)
 
 
 
@@ -82,7 +113,7 @@ def _allocate_recv_buffer(batch_size, sequence_length):
 
 
 def _forward_step_helper(model, tokens, position_ids, attention_mask,
-                         inference_params, recv_buffer=None):
+                         inference_params, recv_buffer=None, vision_inputs=None):
     """Single forward step. Update the allocate memory flag so
     only the first time the memory is allocated."""
     batch_size = tokens.size(0)
@@ -95,9 +126,13 @@ def _forward_step_helper(model, tokens, position_ids, attention_mask,
 
     # Forward pass through the model.
     model.set_input_tensor(recv_buffer)
-    output_tensor = model(tokens, position_ids, attention_mask,
-                          inference_params=inference_params)
 
+    if vision_inputs is not None:
+        output_tensor = model(tokens, vision_inputs, position_ids, attention_mask,
+                                inference_params=inference_params)
+    else:
+        output_tensor = model(tokens, position_ids, attention_mask,
+                          inference_params=inference_params)
     # Send output to the next stage.
     send_to_next_pipeline_rank(output_tensor)
 
@@ -106,12 +141,12 @@ def _forward_step_helper(model, tokens, position_ids, attention_mask,
 
 
 def _no_pipelining_forward_step(model, tokens, position_ids, attention_mask,
-                                inference_params, recv_buffer=None):
+                                inference_params, recv_buffer=None, vision_inputs=None):
     """If recv_buffer is none, we will allocate one on the fly."""
     # Run a simple forward pass.
     output_tensor = _forward_step_helper(model, tokens, position_ids,
                                          attention_mask, inference_params,
-                                         recv_buffer=recv_buffer)
+                                         recv_buffer=recv_buffer, vision_inputs=vision_inputs)
     # Update the sequence length offset.
     inference_params.sequence_len_offset += tokens.size(1)
 

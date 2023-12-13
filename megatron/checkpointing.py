@@ -9,11 +9,14 @@ import numpy as np
 
 import torch
 
+import megatron
 from megatron import update_num_microbatches
 from megatron.core import mpu, tensor_parallel
+from megatron.model.module import Float16Module
 from .global_vars import get_args
 from .utils import (unwrap_model,
                     print_rank_0)
+from megatron.arguments import validate_visual_args_sam, validate_visual_args_clip
 
 
 _CHECKPOINT_VERSION = None
@@ -238,7 +241,8 @@ def get_rng_state():
     return rng_state_list
 
 
-def save_checkpoint(iteration, model, optimizer, opt_param_scheduler):
+def save_checkpoint(iteration, model, optimizer, opt_param_scheduler,
+                    visual_model=None, train_dataloader=None):
     """Save a model checkpoint."""
     args = get_args()
 
@@ -250,6 +254,38 @@ def save_checkpoint(iteration, model, optimizer, opt_param_scheduler):
 
     # Collect rng state across data parallel ranks.
     rng_state = get_rng_state()
+
+    if (
+        not torch.distributed.is_initialized() or (
+            mpu.is_pipeline_first_stage(ignore_virtual=True)
+            and mpu.get_tensor_model_parallel_rank() == 0
+            )
+        ) and train_dataloader and hasattr(train_dataloader, 'save_state_rank'):
+        # Only do this on each first data parallel rank (i.e. pipeline rank 0, model parallel rank 0)
+
+        dp_rank = mpu.get_data_parallel_rank() if torch.distributed.is_initialized() else 0
+        print(f'saving dataloader checkpoint at iteration {iteration:7d} to {args.dataloader_save}')
+        # Must save state over all data parallel ranks!
+        train_dataloader_state_dict = train_dataloader.save_state_rank()
+        data_state_save_name = get_checkpoint_name(
+            args.dataloader_save, iteration,
+        )
+
+        if torch.distributed.is_initialized():
+            torch.distributed.barrier()
+
+        if not torch.distributed.is_initialized() \
+        or mpu.get_data_parallel_rank() == 0:
+            ensure_directory_exists(data_state_save_name)
+
+        if torch.distributed.is_initialized():
+            torch.distributed.barrier()
+
+        dataloader_save_dict = {}
+        dataloader_save_dict['dataloader_state_dict'] = train_dataloader_state_dict
+        dataloader_save_dict['train_data_path'] = args.train_data_path
+        torch.save(dataloader_save_dict, data_state_save_name)
+
 
     # Checkpoint name.
     checkpoint_name = get_checkpoint_name(args.save, iteration)
@@ -294,6 +330,56 @@ def save_checkpoint(iteration, model, optimizer, opt_param_scheduler):
         ensure_directory_exists(checkpoint_name)
         torch.save(state_dict, checkpoint_name)
 
+    # save vision backbone
+    if visual_model:
+
+        def save_visual_checkpoint(v_model, v_checkpoint_name, v_save):
+            print_rank_0('saving visual checkpoint at iteration {:7d} to {}'.format(
+                iteration, args.visual_save))
+
+            visual_state_dict = {}
+
+            # Collect args, model, RNG.
+            if not torch.distributed.is_initialized() \
+            or mpu.get_data_parallel_rank() == 0:
+
+                visual_state_dict['args'] = args
+                visual_state_dict['checkpoint_version'] = 3.0
+                visual_state_dict['iteration'] = iteration
+                visual_state_dict['model'] = v_model.state_dict_for_save_checkpoint()
+
+            # RNG states.
+            if not args.no_save_rng:
+                visual_state_dict["rng_state"] = rng_state
+
+            #save
+            ensure_directory_exists(v_checkpoint_name)
+            torch.save(visual_state_dict, v_checkpoint_name)
+            print_rank_0('  successfully saved vision checkpoint at iteration {:7d} to {}' \
+                        .format(iteration, v_save))
+
+        visual_model = unwrap_model(visual_model)
+        if args.use_hybrid_visual_backbones:
+            # saving SAM TODO: check if visual model optimzer is need or not
+            args = validate_visual_args_sam(args)
+            visual_checkpoint_name = get_checkpoint_name(args.visual_save, iteration)
+            if hasattr(visual_model.module, 'sam_model'):
+                save_visual_checkpoint(visual_model.module.sam_model, visual_checkpoint_name, args.visual_save)
+            else:
+                save_visual_checkpoint(visual_model.module.module.sam_model, visual_checkpoint_name, args.visual_save)
+
+            # saving CLIP
+            args = validate_visual_args_clip(args)
+            visual_checkpoint_name = get_checkpoint_name(args.visual_save, iteration)
+            if hasattr(visual_model.module, 'clip_model'):
+                save_visual_checkpoint(visual_model.module.clip_model, visual_checkpoint_name, args.visual_save)
+            else:
+                save_visual_checkpoint(visual_model.module.module.clip_model, visual_checkpoint_name, args.visual_save)
+        else:
+            visual_checkpoint_name = get_checkpoint_name(args.visual_save, iteration)
+            save_visual_checkpoint(visual_model, visual_checkpoint_name, args.visual_save)
+
+
     # Wait so everyone is done (necessary)
     if torch.distributed.is_initialized():
         torch.distributed.barrier()
@@ -307,6 +393,20 @@ def save_checkpoint(iteration, model, optimizer, opt_param_scheduler):
         tracker_filename = get_checkpoint_tracker_filename(args.save)
         with open(tracker_filename, 'w') as f:
             f.write(str(iteration))
+        if visual_model:
+            if args.use_hybrid_visual_backbones:
+                args = validate_visual_args_sam(args)
+                tracker_filename = get_checkpoint_tracker_filename(args.visual_save)
+                with open(tracker_filename, 'w') as f:
+                    f.write(str(iteration))
+                args = validate_visual_args_clip(args)
+                tracker_filename = get_checkpoint_tracker_filename(args.visual_save)
+                with open(tracker_filename, 'w') as f:
+                    f.write(str(iteration))
+            else:
+                tracker_filename = get_checkpoint_tracker_filename(args.visual_save)
+                with open(tracker_filename, 'w') as f:
+                    f.write(str(iteration))
 
     # Wait so everyone is done (not necessary)
     if torch.distributed.is_initialized():
@@ -383,7 +483,7 @@ def fix_query_key_value_ordering(model, checkpoint_version):
                      " checkpoint version {}".format(checkpoint_version))
 
 
-def _load_base_checkpoint(load_dir, rank0=False):
+def _load_base_checkpoint(load_dir, rank0=False, load_iter=None):
     """ Load the base state_dict from the given directory
 
     If rank0 is true, just loads rank 0 checkpoint, ignoring arguments.
@@ -404,6 +504,9 @@ def _load_base_checkpoint(load_dir, rank0=False):
     # Otherwise, read the tracker file and either set the iteration or
     # mark it as a release checkpoint.
     iteration, release = read_metadata(tracker_filename)
+
+    if load_iter is not None:
+        iteration = load_iter
 
     # Checkpoint.
     if rank0:
@@ -521,8 +624,85 @@ def load_args_from_checkpoint(args, load_arg='load'):
         _set_arg('num_layers_per_virtual_pipeline_stage')
     return args, checkpoint_args
 
+def load_visual_checkpoint(model, load_arg='load', strict=True, load_iter=None):
+    """Load a visual model checkpoint and return the iteration.
+    strict (bool): whether to strictly enforce that the keys in
+        :attr:`state_dict` of the checkpoint match the names of
+        parameters and buffers in model.
+    """
+    args = get_args()
+    load_dir = args.visual_path
 
-def load_checkpoint(model, optimizer, opt_param_scheduler, load_arg='load', strict=True):
+    # move to train.py
+    # model = unwrap_model(model)
+
+    state_dict, checkpoint_name, release = _load_base_checkpoint(load_dir, rank0=False, load_iter=load_iter)
+
+    # Checkpoint not loaded.
+    if state_dict is None:
+
+        # Conditionally exit at this point.
+        if args.exit_on_missing_checkpoint:
+            print_rank_0(">> '--exit-on-missing-checkpoint' set ... exiting. <<")
+            torch.distributed.barrier()
+            sys.exit()
+
+        # Iteration defaults to 0.
+        return 0
+
+    # set checkpoint version
+    set_checkpoint_version(state_dict.get('checkpoint_version', 0))
+
+    # Model.
+    try:
+        iteration = state_dict['iteration']
+
+        if args.align_to_old:
+            new_state_dict = {}
+            for key, values in state_dict['model'].items():
+                key = key.replace("layernorm", "norm")
+                if "rel_pos" in key and ("core_attention" not in key):
+                    key = key.replace("self_attention", "self_attention.core_attention")
+                new_state_dict[key] = values
+            model.load_state_dict(new_state_dict, strict=strict)
+        else:
+            model.load_state_dict(state_dict['model'], strict=strict)
+
+        if args.SAM_randinit and args.no_load_optim and args.visual_arch.startswith('SAM'):
+            if isinstance(model, torch.nn.parallel.DistributedDataParallel):
+                model_component = model.module
+
+                if  isinstance(model_component, Float16Module):
+                    model_component = model_component.module
+            else:
+                model_component = model
+
+            model_component.neck[0].reset_parameters()
+            model_component.neck[2].reset_parameters()
+            model_component.neck[1].bias.data.zero_()
+            model_component.neck[1].weight.data.fill_(1.)
+            model_component.neck[3].bias.data.zero_()
+            model_component.neck[3].weight.data.fill_(1.)
+
+    except KeyError:
+        try:  # Backward compatible with older checkpoints
+            iteration = state_dict['total_iters']
+        except KeyError:
+            print_rank_0('A metadata file exists but unable to load '
+                         'iteration from checkpoint {}, exiting'.format(
+                             checkpoint_name))
+            sys.exit()
+
+    # Some utilities want to load a checkpoint without distributed being initialized
+    if torch.distributed.is_initialized():
+        torch.distributed.barrier()
+
+    print_rank_0(f'  successfully loaded checkpoint from {args.visual_path} '
+                 f'at iteration {iteration}')
+
+    return iteration
+
+def load_checkpoint(model, optimizer, opt_param_scheduler, load_arg='load', strict=True, load_iter=None):
     """Load a model checkpoint and return the iteration.
     strict (bool): whether to strictly enforce that the keys in
         :attr:`state_dict` of the checkpoint match the names of
@@ -533,7 +713,7 @@ def load_checkpoint(model, optimizer, opt_param_scheduler, load_arg='load', stri
 
     model = unwrap_model(model)
 
-    state_dict, checkpoint_name, release = _load_base_checkpoint(load_dir, rank0=False)
+    state_dict, checkpoint_name, release = _load_base_checkpoint(load_dir, rank0=False, load_iter=load_iter)
 
     # Checkpoint not loaded.
     if state_dict is None:
@@ -579,9 +759,24 @@ def load_checkpoint(model, optimizer, opt_param_scheduler, load_arg='load', stri
     else:
         print_rank_0('could not find arguments in the checkpoint ...')
 
+    if args.no_load_optim and args.add_gated_xattn:
+        print("Load from GPT.... Initialize the input layer norm to xattn layer norm.")
+        for i in range(args.num_layers):
+            try:
+                state_dict['model']['language_model']['encoder']['layers.%d.xattn_layernorm.weight' % (i)] = \
+                    state_dict['model']['language_model']['encoder']['layers.%d.input_layernorm.weight' % (i)]
+                state_dict['model']['language_model']['encoder']['layers.%d.xattn_layernorm.bias' % (i)] = \
+                    state_dict['model']['language_model']['encoder']['layers.%d.input_layernorm.bias' % (i)]
+            except:
+                state_dict['model']['language_model']['encoder']['layers.%d.xattn_norm.weight' % (i)] = \
+                    state_dict['model']['language_model']['encoder']['layers.%d.input_norm.weight' % (i)]
+
     # Model.
     if len(model) == 1:
-        model[0].load_state_dict(state_dict['model'], strict=strict)
+        if args.add_gated_xattn:
+            model[0].load_state_dict(state_dict['model'], strict=False)
+        else:
+            model[0].load_state_dict(state_dict['model'], strict=strict)
     else:
         for i in range(len(model)):
             mpu.set_virtual_pipeline_model_parallel_rank(i)

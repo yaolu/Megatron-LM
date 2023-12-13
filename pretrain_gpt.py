@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 # Copyright (c) 2023, NVIDIA CORPORATION.  All rights reserved.
 """Pretrain GPT."""
+=======
+# Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
+>>>>>>> 2282062b41a603c7083c2107e119875ebc06490e
 
 import os
 import torch
@@ -95,7 +99,7 @@ def get_batch(data_iterator):
     tokenizer = get_tokenizer()
 
     # Items and their type.
-    keys = ['text']
+    keys = ["text"]
     datatype = torch.int64
 
     # Broadcast data.
@@ -106,7 +110,7 @@ def get_batch(data_iterator):
     data_b = tensor_parallel.broadcast_data(keys, data, datatype)
 
     # Unpack.
-    tokens_ = data_b['text'].long()
+    tokens_ = data_b["text"].long()
     labels = tokens_[:, 1:].contiguous()
     tokens = tokens_[:, :-1].contiguous()
 
@@ -116,7 +120,8 @@ def get_batch(data_iterator):
         tokenizer.eod,
         args.reset_position_ids,
         args.reset_attention_mask,
-        args.eod_mask_loss)
+        args.eod_mask_loss,
+    )
 
     batch = {
         'tokens': tokens,
@@ -173,13 +178,28 @@ def forward_step(data_iterator, model: GPTModel):
     timers = get_timers()
 
     # Get the batch.
-    timers('batch-generator', log_level=2).start()
-    tokens, labels, loss_mask, attention_mask, position_ids = get_batch(
-        data_iterator)
-    timers('batch-generator').stop()
+    timers("batch-generator", log_level=2).start()
+    tokens, labels, loss_mask, attention_mask, position_ids = get_batch(data_iterator)
+    timers("batch-generator").stop()
 
-    output_tensor = model(tokens, position_ids, attention_mask,
-                          labels=labels)
+    # NOTE(jbarker): Temporary debug code
+    # from megatron.core import mpu
+
+    # dpr = mpu.get_data_parallel_rank()
+    # tpr = mpu.get_tensor_model_parallel_rank()
+    # ppr = mpu.get_pipeline_model_parallel_rank()
+    # vpr = (
+    #    mpu.get_virtual_pipeline_model_parallel_rank()
+    #    if mpu.get_virtual_pipeline_model_parallel_rank() is not None
+    #    else 0
+    # )
+    # print(
+    #    f"DATA: {dpr},{tpr},{ppr},{vpr},{tokens.double().abs().sum()},{labels.double().abs().sum()},{loss_mask.double().abs().sum()},{attention_mask.double().abs().sum()},{position_ids.double().abs().sum()}\n"
+    # )
+
+    output_tensor = model(
+        tokens, position_ids, attention_mask, labels=labels
+    )
 
     return output_tensor, partial(loss_func, loss_mask)
 

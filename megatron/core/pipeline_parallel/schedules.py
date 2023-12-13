@@ -146,17 +146,18 @@ def custom_backward(output, grad_output):
     )
 
 
-def forward_step(
-    forward_step_func,
-    data_iterator,
-    model,
-    num_microbatches,
-    input_tensor,
-    forward_data_store,
-    config,
-    collect_non_loss_data=False,
-    checkpoint_activations_microbatch=None,
-):
+
+
+
+def forward_step(forward_step_func,
+                 data_iterator,
+                 model,
+                 num_microbatches,
+                 input_tensor,
+                 forward_data_store,
+                 config,
+                 collect_non_loss_data=False,
+                 checkpoint_activations_microbatch=None, visual_model=None):
     """Forward step for passed-in model.
 
     If first stage, input tensor is obtained from data_iterator, otherwise
@@ -180,18 +181,25 @@ def forward_step(
         context_manager = contextlib.nullcontext()
     with context_manager:
         if checkpoint_activations_microbatch is None:
-            output_tensor, loss_func = forward_step_func(data_iterator, model)
+            if visual_model is None:
+                output_tensor, loss_func = forward_step_func(data_iterator, model)
+            else:
+                output_tensor, loss_func = forward_step_func(data_iterator, model, visual_model=visual_model)
         else:
-            output_tensor, loss_func = forward_step_func(
-                data_iterator, model, checkpoint_activations_microbatch
-            )
+            if visual_model is None:
+                output_tensor, loss_func = forward_step_func(data_iterator, model, checkpoint_activations_microbatch)
+            else:
+                output_tensor, loss_func = forward_step_func(data_iterator, model, checkpoint_activations_microbatch, visual_model=visual_model)
+
 
     if parallel_state.is_pipeline_last_stage():
         if not collect_non_loss_data:
+            torch.cuda.nvtx.range_push("loss")
             output_tensor = loss_func(output_tensor)
             loss, loss_reduced = output_tensor
             output_tensor = loss / num_microbatches
             forward_data_store.append(loss_reduced)
+            torch.cuda.nvtx.range_pop()
         else:
             data = loss_func(output_tensor, non_loss_data=True)
             forward_data_store.append(data)
@@ -280,18 +288,18 @@ def backward_step(input_tensor, output_tensor, output_tensor_grad, model_type, c
     return input_tensor_grad
 
 
-def forward_backward_no_pipelining(
-    *,
-    forward_step_func,
-    data_iterator: Union[Iterator, List[Iterator]],
-    model: Union[torch.nn.Module, List[torch.nn.Module]],
-    num_microbatches: int,
-    seq_length: int,  # unused
-    micro_batch_size: int,  # unused
-    decoder_seq_length: int = None,  # unused
-    forward_only: bool = False,
-    collect_non_loss_data: bool = False,
-):
+def forward_backward_no_pipelining(*,
+                                   forward_step_func,
+                                   data_iterator: Union[Iterator, List[Iterator]],
+                                   model: Union[torch.nn.Module, List[torch.nn.Module]],
+                                   num_microbatches: int,
+                                   seq_length: int, # unused
+                                   micro_batch_size: int, # unused
+                                   decoder_seq_length: int = None, # unused
+                                   forward_only: bool = False,
+                                   collect_non_loss_data: bool = False,
+                                   visual_model: Optional[Union[torch.nn.Module, List[torch.nn.Module]]] = None
+                                   ):
     """Run forward and backward passes with no pipeline parallelism
     (no inter-stage communication).
 
@@ -324,34 +332,22 @@ def forward_backward_no_pipelining(
     input_tensor, output_tensor_grad = None, None
     with no_sync_func():
         for i in range(num_microbatches - 1):
-            output_tensor = forward_step(
-                forward_step_func,
-                data_iterator,
-                model,
-                num_microbatches,
-                input_tensor,
-                forward_data_store,
-                config,
-                collect_non_loss_data,
-            )
+            output_tensor = forward_step(forward_step_func, data_iterator, model, num_microbatches,
+                                         input_tensor, forward_data_store, config, collect_non_loss_data, visual_model=visual_model)
             if not forward_only:
+                torch.cuda.nvtx.range_push("backward")
                 backward_step(input_tensor, output_tensor, output_tensor_grad, model_type, config)
+                torch.cuda.nvtx.range_pop()
 
     # Run computation for last microbatch out of context handler (want to
     # synchronize gradients).
-    output_tensor = forward_step(
-        forward_step_func,
-        data_iterator,
-        model,
-        num_microbatches,
-        input_tensor,
-        forward_data_store,
-        config,
-        collect_non_loss_data,
-    )
+    output_tensor = forward_step(forward_step_func, data_iterator, model, num_microbatches,
+                                 input_tensor, forward_data_store, config, collect_non_loss_data, visual_model=visual_model)
 
     if not forward_only:
+        torch.cuda.nvtx.range_push("backward (final)")
         backward_step(input_tensor, output_tensor, output_tensor_grad, model_type, config)
+        torch.cuda.nvtx.range_pop()
 
     if config.timers is not None:
         config.timers('forward-backward').stop()
