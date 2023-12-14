@@ -30,7 +30,6 @@ def get_param_groups(modules, visual_modules,
     if visual_modules is not None:
         all_modules = all_modules + visual_modules
 
-    lm_param_skipped = 0
     for module in all_modules:
         for name, param in module.named_parameters():
             if not param.requires_grad:
@@ -74,7 +73,6 @@ def get_param_groups(modules, visual_modules,
 
             
             if args.freeze_LM and param_name == "LM":
-                lm_param_skipped+=1
                 if 'adaptor' not in name:
                     continue
                 elif not args.train_adaptor:
@@ -110,7 +108,6 @@ def get_param_groups(modules, visual_modules,
     if len(no_wd_scale_lr):
         param_groups.append({'params': no_wd_scale_lr, 'wd_mult': 0.0, 'lr_mult': lr_mult})
 
-    print(f"lm_param_skipped {lm_param_skipped}")
     return param_groups
 
 def get_megatron_optimizer(model, visual_model=None,

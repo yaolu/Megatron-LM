@@ -459,6 +459,17 @@ def setup_model_and_optimizer(model_provider_func,
         args.params_dtype = pdtype
 
     unwrapped_model = unwrap_model(model)
+    #TODO Peter added
+    import numpy as np
+    unwrapped_visual_model = unwrap_model(visual_model)
+    print_rank_0("visual model before")
+    for name, param in unwrapped_visual_model[0].named_parameters():
+        total = np.float64(param.double().abs().sum().item())
+        print_rank_0(f"{name}, {total}")
+    print_rank_0("LLM model before")
+    for name, param in unwrapped_model[0].named_parameters():
+        total = np.float64(param.double().abs().sum().item())
+        print_rank_0(f"{name}, {total}")
 
 
     optimizer = get_megatron_optimizer(model, visual_model, no_wd_decay_cond,
@@ -494,6 +505,21 @@ def setup_model_and_optimizer(model_provider_func,
     else:
         args.iteration = 0
 
+    #TODO PETER REMOVE
+    unwrapped_model = unwrap_model(model)
+    #TODO Peter added
+    import numpy as np
+    unwrapped_visual_model = unwrap_model(visual_model)
+    print_rank_0("visual model after")
+    for name, param in unwrapped_visual_model[0].named_parameters():
+        total = np.float64(param.double().abs().sum().item())
+        print_rank_0(f"{name}, {total}")
+    print_rank_0("LLM model after")
+    for name, param in unwrapped_model[0].named_parameters():
+        total = np.float64(param.double().abs().sum().item())
+        print_rank_0(f"{name}, {total}")
+
+    
     # get model without FP16 and/or DDP wrappers
     if args.iteration == 0 and len(unwrapped_model) == 1 \
         and hasattr(unwrapped_model[0], 'init_state_dict_from_bert'):
@@ -536,6 +562,25 @@ def train_step(forward_step_func, data_iterator,
         micro_batch_size=args.micro_batch_size,
         decoder_seq_length=args.decoder_seq_length,
         forward_only=False, visual_model=visual_model)
+
+#    v_total_norm = 0
+#     for name, p in visual_model.named_parameters():
+#         grad = p.main_grad
+#         if grad is not None:
+#             param_norm = grad.detach().data.norm(2)
+#             print(f"v gradnorm {name}: {param_norm}")
+#             v_total_norm += param_norm.item() ** 2
+#     v_total_norm = v_total_norm ** 0.5
+    
+#     l_total_norm = 0
+#     for name, p in unwrap_model(model[0]).named_parameters():
+#         grad = p.main_grad
+#         if grad is not None:
+#             param_norm = grad.detach().data.norm(2)
+#             print(f"llm gradnorm {name}: {param_norm}")
+#             l_total_norm += param_norm.item() ** 2
+#     l_total_norm = l_total_norm ** 0.5
+#     print_rank_0(f"grads: vnorm {v_total_norm}, LLM norm {l_total_norm}")
 
     # Empty unused memory.
     if args.empty_unused_memory_level >= 1:
@@ -873,18 +918,26 @@ def train(forward_step_func, model, optimizer, opt_param_scheduler,
 
         update_num_microbatches(args.consumed_train_samples)
         args.curr_iteration = iteration
-        with AGATProbe(modules=[model[0], visual_model],
-                output_file="test.json",
-                enabled=True,
-                append=iteration > 0,
-                iteration=iteration):
-            loss_dict, skipped_iter, grad_norm, num_zeros_in_grad = \
-                train_step(forward_step_func,
-                        train_data_iterator,
-                        model,
-                        optimizer,
-                        opt_param_scheduler,
-                        config, visual_model=visual_model)
+        # with AGATProbe(modules=[model[0], visual_model],
+        #         output_file="test.json",
+        #         enabled=True,
+        #         append=iteration > 0,
+        #         iteration=iteration):
+        loss_dict, skipped_iter, grad_norm, num_zeros_in_grad = \
+            train_step(forward_step_func,
+                    train_data_iterator,
+                    model,
+                    optimizer,
+                    opt_param_scheduler,
+                    config, visual_model=visual_model)
+        #TODO PETER DELETE
+        # import numpy as np
+        # for name, param in visual_model.named_parameters():
+        #     total = np.float64(param.double().abs().sum().item())
+        #     print_rank_0(f"{iteration}, {name}, {total}")
+        # from megatron.utils import calc_params_l2_norm
+        # print_rank_0(calc_params_l2_norm(visual_model))
+
         iteration += 1
         args.consumed_train_samples += mpu.get_data_parallel_world_size() * \
                                        args.micro_batch_size * \
