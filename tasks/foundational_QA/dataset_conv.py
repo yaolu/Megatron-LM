@@ -319,7 +319,7 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
     # system = "System: This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\n"
     system = "System: This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions based on the context. The assistant should also indicate when the answer cannot be found in the context.\n\n"
 
-    if dataset_name in ["oasst", "quiet_cockatoo"]:
+    if dataset_name in ["oasst", "quiet_cockatoo", "quiet-cockatoo_commercial"]:
         ## replace \n\n with \n
         all_input = system + query
         # all_input = all_input.replace("\n\n", "\n")
@@ -328,22 +328,78 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
         # print(dataset_name, system + query)
         return input_tokens
 
-    short_span_with_context = ["drop", "NarrativeQA", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq", "BioASQ", "DuoRC_ParaphraseRC", "TextbookQA"]
+    # ## original
+    # if dataset_name == "NarrativeQAretrieval":
+    #     system += "The following text is from top-5 retrieved context.\n"
+    # else:
+    #     system += "The following text is a continuous and uninterrupted document.\n"
+
+    # ## promptv2
+    # if dataset_name == "NarrativeQAretrieval":
+    #     system += "The following text is from top-5 retrieved context.\n"
+
+    short_span_with_context = ["drop", "NarrativeQA", "NarrativeQAretrieval", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq", "BioASQ", "DuoRC_ParaphraseRC", "TextbookQA", "WikiTableQuestions", "HybridQA"]
     yes_no_without_context = ["boolq", "multirc"]
     multichoices = ["race"]
     # multi-turn qa datasets
-    formatted_dataset_name = ["convqa", "chatgptgen", "doc2dial", "doc2dialv2", "quac", "quacv2", "qrecc", "sharc", "nvolvemultiturn600"]
+    formatted_dataset_name = ["convqa", "convqav2", "chatgptgen", "chatgptgennoanswer", "chatgptgennoanswerv2", "doc2dial", "doc2dialv2", "doc2dial_dragon", "quac", "quacv2", "quac_dragon", "qrecc", "qrecc_dragon", "sharc", "nvolvemultiturn1300", "nvolvemultiturn1700", "nvolvemultiturnfiltered5k", "nvolvemultiturnfiltered5knoanswer", "nvolvemultiturnfiltered7k", "nvolvemultiturnfiltered7knoanswer", "nvolvemultiturnfiltered7knoanswer1k", "nvolvemultiturnfiltered7knoanswer2k", "nvolvemultiturnfiltered7knoanswer3k", "doqa_cooking", "doqa_movies", "doqa_travel", "hybriddial", "inscit", "inscit_dragon"]
 
-    math_program_with_context = ["finqa"]
-    math_program_multiturn = ["convfinqa"]
+    formatted_dataset_name_short = ["coqa"]
+    formatted_dataset_name_short_and_long = ["sqa", "topiocqa", "topiocqa_dragon"]
+    singleturn_dataset_name_short_and_long = ["tatqamultispan", "llmware"]
+
+    math_program_with_context = ["finqa", "finqav2"]
+    math_program_with_context_v2 = ['tatqav2']
+    math_program_with_context_v3 = ['tatqav3']
+    math_program_multiturn = ["convfinqa", "convfinqav2"]
+    math_program_multiturn_v2 = ["convfinqav3"]
 
     user_template = ""
 
     if dataset_name in formatted_dataset_name:
-        dialogue_turn = query
+        # dialogue_turn = query
+
+        ## adding this instruction to multi-turn
+        tmp_list = query.split("User:", 1)  # split will stop at the first "User:"
+        dialogue_turn = "User: Please give a full and complete answer for the question." + tmp_list[1]
+    
+    elif dataset_name in formatted_dataset_name_short_and_long:
+
+        tmp_list = query.split("User:")
+        tmp_list = tmp_list[1:]
+
+        dialogue_turn = ""
+        if len(tmp_list) > 1:
+            for item in tmp_list[:-1]:
+                dialogue_turn += "User:" + item
+        dialogue_turn += "User: Answer the following question with a short span, or a full and complete answer." + tmp_list[-1]
+    
+    elif dataset_name in formatted_dataset_name_short:
+        tmp_list = query.split("User:")
+        tmp_list = tmp_list[1:]
+
+        dialogue_turn = ""
+        if len(tmp_list) > 1:
+            for item in tmp_list[:-1]:
+                dialogue_turn += "User:" + item
+        dialogue_turn += "User: Answer the following question with a short span. The answer needs to be just in a few words." + tmp_list[-1]
 
     elif dataset_name in math_program_multiturn:
-        dialogue_turn = "Assistant needs to answer user's question with a number or the math arithmetic (add, subtract, multiply, and divide).\n{}".format(query)
+        # dialogue_turn = "Assistant needs to answer user's question with a number or the math arithmetic (add, subtract, multiply, and divide).\n{}".format(query)
+
+        ## for training
+        tmp_list = query.split("User:", 1)  # split will stop at the first "User:"
+        dialogue_turn = "User: Answer the following question with a number from context or the math arithmetic (add, subtract, multiply, and divide)." + tmp_list[1]
+
+    elif dataset_name in math_program_multiturn_v2:
+        ## for evaluation
+        tmp_list = query.split("User:")
+        tmp_list = tmp_list[1:]
+        dialogue_turn = ""
+        if len(tmp_list) > 1:
+            for item in tmp_list[:-1]:
+                dialogue_turn += "User:" + item
+        dialogue_turn += "User: Answer the following question with a number from context or the math arithmetic using +, -, *, or /." + tmp_list[-1]
 
     else:
         if dataset_name in short_span_with_context:
@@ -354,8 +410,23 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
         elif dataset_name in multichoices:
             user = "Answer the following question by selecting one of the provided options. {}".format(query)
         elif dataset_name in math_program_with_context:
-            user = "Answer the following question with the math arithmetic (add, subtract, multiply, and divide). {}".format(query)
+            ## for training
+            # user = "Answer the following question with the math arithmetic (add, subtract, multiply, and divide). {}".format(query)
+
+            ## for evaluation
+            user = "Answer the following question with the math arithmetic using +, -, *, or /. {}".format(query)
+        elif dataset_name in math_program_with_context_v2:
+            ## for evaluation
+            user = "Answer the following question with a short span or a number from context or the math arithmetic (add, subtract, multiply, and divide). {}".format(query)
+        elif dataset_name in math_program_with_context_v3:
+            ## for training
+            user = "Answer the following question with a number from context or the math arithmetic using +, -, *, or /. {}".format(query)
+
+        elif dataset_name in singleturn_dataset_name_short_and_long:
+            user = "Answer the following question with a short span, or a full and complete answer. {}".format(query)
+
         else:
+            # fetaqa/llmware_unanswerable goes to here by default
             user = "Please give a full and complete answer for the question. {}".format(query)
 
         dialogue_format="User: {}\n\nAssistant:"
@@ -369,7 +440,34 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
         #     random.shuffle(random_neighbours)
         #     neighbours = random_neighbours + neighbours[ft_neighbours:]
         # Truncate to `max_sequence_length` to fit in output tokens.
+
+        ## normal ordering
         context = "\n\n".join(neighbours[0:ft_neighbours]) + "\n\n"
+
+        # ## reverse ordering
+        # ctx_list = neighbours[0:ft_neighbours]
+        # ctx_list = ctx_list[::-1]
+        # context = "\n\n".join(ctx_list) + "\n\n"
+
+        # ## swing ordering
+        # ctx_list_tmp = neighbours[0:ft_neighbours]
+        # num_ctx = len(ctx_list_tmp)
+        # ctx_list = [None] * num_ctx
+        # for idx, ctx in enumerate(ctx_list_tmp):
+        #     if idx % 2 == 0:
+        #         update_idx = int(idx // 2)
+        #     else:
+        #         offset = (idx+1)/2
+        #         update_idx = int(num_ctx-offset)
+        #     ctx_list[update_idx] = ctx
+        # context = "\n\n".join(ctx_list) + "\n\n"
+
+        # ## shuffle ordering
+        # ctx_list = neighbours[0:ft_neighbours]
+        # random.seed(1234)
+        # random.shuffle(ctx_list)
+        # context = "\n\n".join(ctx_list) + "\n\n"
+
         context_tokens = tokenizer.tokenize(context)
         dialogue_tokens = tokenizer.tokenize(dialogue_turn)
         system_tokens = tokenizer.tokenize(system)
@@ -392,6 +490,146 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
     return  input_tokens
 
 
+def reformat_prompt_chatbased(query, neighbours, dataset_name, ft_neighbours, \
+    max_output_len, tokenizer, max_seq_length):
+
+    system = "You are a honest assistant who responds with short answers from documents that the user provides. Please indicate if the documents do not have enough information to answer the question. Any information that you provide from outside the documents is likely obsolete and harmful to the user. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct."
+
+    system_prompt ="<s>[INST] <<SYS>>" + system + "<</SYS>>\n\n"
+
+    if dataset_name in ["oasst", "quiet_cockatoo", "quiet-cockatoo_commercial"]:
+        ## replace \n\n with \n
+
+        user_prompt = "Answer the final question from User.\n" + query
+        all_input = system_prompt + user_prompt + "[/INST]"
+
+        # all_input = all_input.replace("\n\n", "\n")
+        input_tokens = tokenizer.tokenize(all_input)
+        # input_tokens = tokenizer.tokenize(system + query)
+        # print(dataset_name, system + query)
+        return input_tokens
+
+    short_span_with_context = ["drop", "NarrativeQA", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq", "BioASQ", "DuoRC_ParaphraseRC", "TextbookQA", "WikiTableQuestions", "HybridQA"]
+    yes_no_without_context = ["boolq", "multirc"]
+    multichoices = ["race"]
+    # multi-turn qa datasets
+    formatted_dataset_name = ["convqa", "convqav2", "chatgptgen", "chatgptgennoanswer", "chatgptgennoanswerv2", "doc2dial", "doc2dialv2", "doc2dial_dragon", "quac", "quacv2", "quac_dragon", "qrecc", "qrecc_dragon", "sharc", "nvolvemultiturn1300", "nvolvemultiturn1700", "nvolvemultiturnfiltered5k", "nvolvemultiturnfiltered5knoanswer", "doqa_cooking", "doqa_movies", "doqa_travel", "hybriddial", "inscit", "inscit_dragon"]
+
+    formatted_dataset_name_short = ["coqa"]
+    formatted_dataset_name_short_and_long = ["sqa", "topiocqa", "topiocqa_dragon"]
+    singleturn_dataset_name_short_and_long = ["tatqamultispan", "llmware"]
+
+    math_program_with_context = ["finqa", "finqav2"]
+    math_program_with_context_v2 = ['tatqav2']
+    math_program_with_context_v3 = ['tatqav3']
+    math_program_multiturn = ["convfinqa", "convfinqav2"]
+    math_program_multiturn_v2 = ["convfinqav3"]
+
+    if dataset_name in formatted_dataset_name:
+        # dialogue_turn = query
+
+        ## adding this instruction to multi-turn
+        tmp_list = query.split("User:", 1)  # split will stop at the first "User:"
+        dialogue_turn = "User: Please give a full and complete answer for the question." + tmp_list[1]
+    
+    elif dataset_name in formatted_dataset_name_short_and_long:
+
+        tmp_list = query.split("User:")
+        tmp_list = tmp_list[1:]
+
+        dialogue_turn = ""
+        if len(tmp_list) > 1:
+            for item in tmp_list[:-1]:
+                dialogue_turn += "User:" + item
+        dialogue_turn += "User: Answer the following question with a short span, or a full and complete answer." + tmp_list[-1]
+    
+    elif dataset_name in formatted_dataset_name_short:
+        tmp_list = query.split("User:")
+        tmp_list = tmp_list[1:]
+
+        dialogue_turn = ""
+        if len(tmp_list) > 1:
+            for item in tmp_list[:-1]:
+                dialogue_turn += "User:" + item
+        dialogue_turn += "User: Answer the following question with a short span. The answer needs to be just in a few words." + tmp_list[-1]
+
+    elif dataset_name in math_program_multiturn:
+        # dialogue_turn = "Assistant needs to answer user's question with a number or the math arithmetic (add, subtract, multiply, and divide).\n{}".format(query)
+
+        ## for training
+        tmp_list = query.split("User:", 1)  # split will stop at the first "User:"
+        dialogue_turn = "User: Answer the following question with a number from context or the math arithmetic (add, subtract, multiply, and divide)." + tmp_list[1]
+
+    elif dataset_name in math_program_multiturn_v2:
+        ## for evaluation
+        tmp_list = query.split("User:")
+        tmp_list = tmp_list[1:]
+        dialogue_turn = ""
+        if len(tmp_list) > 1:
+            for item in tmp_list[:-1]:
+                dialogue_turn += "User:" + item
+        dialogue_turn += "User: Answer the following question with a number from context or the math arithmetic using +, -, *, or /." + tmp_list[-1]
+
+    else:
+        if dataset_name in short_span_with_context:
+            # user = "Answer the following question with a short span. {}".format(query)
+            user = "Answer the following question with a short span. The answer needs to be just in a few words. {}".format(query)
+        elif dataset_name in yes_no_without_context:
+            user = "Answer the following question with True or False. {}".format(query)
+        elif dataset_name in multichoices:
+            user = "Answer the following question by selecting one of the provided options. {}".format(query)
+        elif dataset_name in math_program_with_context:
+            ## for training
+            # user = "Answer the following question with the math arithmetic (add, subtract, multiply, and divide). {}".format(query)
+
+            ## for evaluation
+            user = "Answer the following question with the math arithmetic using +, -, *, or /. {}".format(query)
+        elif dataset_name in math_program_with_context_v2:
+            ## for evaluation
+            user = "Answer the following question with a short span or a number from context or the math arithmetic (add, subtract, multiply, and divide). {}".format(query)
+        elif dataset_name in math_program_with_context_v3:
+            ## for training
+            user = "Answer the following question with a number from context or the math arithmetic using +, -, *, or /. {}".format(query)
+
+        elif dataset_name in singleturn_dataset_name_short_and_long:
+            user = "Answer the following question with a short span, or a full and complete answer. {}".format(query)
+
+        else:
+            # fetaqa/llmware_unanswerable goes to here by default
+            user = "Please give a full and complete answer for the question. {}".format(query)
+
+        dialogue_format="User: {}\n\nAssistant:"
+        dialogue_turn = dialogue_format.format(user)
+
+    dialogue_turn = "Answer the final question from User.\n" + dialogue_turn + "[/INST]"
+
+    if ft_neighbours > 0:
+        ## normal ordering
+        context = "Based the information in the following documents:\n" + "\n\n".join(neighbours[0:ft_neighbours]) + "\n\n"
+
+        context_tokens = tokenizer.tokenize(context)
+        dialogue_tokens = tokenizer.tokenize(dialogue_turn)
+        system_tokens = tokenizer.tokenize(system_prompt)
+        context_tokens = context_tokens[:max_seq_length - max_output_len - len(dialogue_tokens) - len(system_tokens)]
+        context = tokenizer.detokenize(context_tokens)
+
+        all_input = system_prompt + context + dialogue_turn
+
+        # ## replace \n\n with \n
+        # all_input = all_input.replace("\n\n", "\n")
+        input_tokens = tokenizer.tokenize(all_input)
+    else:
+        all_input = system_prompt + dialogue_turn
+
+        # ## replace \n\n with \n
+        # all_input = all_input.replace("\n\n", "\n")
+        input_tokens = tokenizer.tokenize(all_input)
+
+    # print(dataset_name, all_input)
+
+    return  input_tokens
+
+
 def reformat_prompt_with_fewshot_samples(query, neighbours, dataset_name, ft_neighbours, fewshot_list, \
     max_output_len, tokenizer, max_seq_length, multiturn_max_fewshot=1):
 
@@ -402,7 +640,7 @@ def reformat_prompt_with_fewshot_samples(query, neighbours, dataset_name, ft_nei
     yes_no_without_context = ["boolq", "multirc"]
     multichoices = ["race"]
     # multi-turn qa datasets
-    formatted_dataset_name = ["convqa", "chatgptgen", "doc2dial", "doc2dialv2", "quac", "quacv2", "qrecc", "sharc", "nvolvemultiturn600"]
+    formatted_dataset_name = ["convqa", "chatgptgen", "doc2dial", "doc2dialv2", "quac", "quacv2", "qrecc", "sharc", "nvolvemultiturn600", "nvolvemultiturnfiltered800"]
 
     math_program_with_context = ["finqa"]
     math_program_multiturn = ["convfinqa"]
@@ -551,6 +789,7 @@ def build_normal_training_sample_v2(sample,
             input_tokens = reformat_prompt_for_neat_spoonbill(query, neighbours, dataset_name, ft_neighbours, len(output_tokens), tokenizer, max_seq_length)
         else:
             input_tokens = reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, len(output_tokens), tokenizer, max_seq_length)
+            # input_tokens = reformat_prompt_chatbased(query, neighbours, dataset_name, ft_neighbours, len(output_tokens), tokenizer, max_seq_length)
 
     # print(answer)
     

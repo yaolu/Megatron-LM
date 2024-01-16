@@ -32,7 +32,10 @@
 # model_name=multiturn_qa_blend_commercial_v21_llama2_text_70b_with_qc_multiturn_same_format_ctx1_70b_64_3e-7
 # model_name=multiturn_qa_blend_commercial_v22_llama2_text_70b_with_qc_multiturn_same_format_ctx1_70b_64_3e-7
 # model_name=multiturn_qa_blend_commercial_v23_llama2_text_70b_with_qc_multiturn_same_format_ctx1_70b_64_3e-7
-model_name=multiturn_qa_blend_commercial_v24_llama2_text_70b_with_qc_multiturn_same_format_ctx1_70b_64_3e-7
+# model_name=multiturn_qa_blend_commercial_v24_llama2_text_70b_with_qc_multiturn_same_format_ctx1_70b_64_3e-7
+model_name=multiturn_qa_blend_commercial_v24_1_llama2_text_70b_with_qc_multiturn_same_format_ctx1_70b_64_3e-7
+# model_name=multiturn_qa_blend_commercial_v24_2_llama2_text_70b_with_qc_multiturn_same_format_ctx1_70b_64_3e-7
+# model_name=multiturn_qa_blend_commercial_v24_3_llama2_text_70b_with_qc_multiturn_same_format_ctx1_70b_64_3e-7
 
 # model_name=sft_blend_llama2_text_13b_same_format_ctx1_13b_128_5e-6
 
@@ -40,57 +43,57 @@ num_ctxs=5
 # num_ctxs=10
 # num_ctxs=3
 
-## convfinqav3 1490 samples
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh convfinqav3 70b greedy test 0 1500 3445 $num_ctxs $model_name true
+# ## convfinqav3 1490 samples
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh convfinqav3 70b greedy test 0 1500 3439 $num_ctxs $model_name true
 
-## sqa 3100 samples
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh sqa 70b greedy test 0 1500 3445 $num_ctxs $model_name true
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh sqa 70b greedy test 1500 1600 3445 $num_ctxs $model_name true
+# ## sqa 3100 samples
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh sqa 70b greedy test 0 1500 3439 $num_ctxs $model_name true
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh sqa 70b greedy test 1500 1600 3439 $num_ctxs $model_name true
 
-## doc2dial 3939 samples
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh doc2dial 70b greedy test 0 2000 3445 $num_ctxs $model_name true
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh doc2dial 70b greedy test 2000 2000 3445 $num_ctxs $model_name true
+# ## doc2dial 3939 samples
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh doc2dial 70b greedy test 0 2000 3439 $num_ctxs $model_name true
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh doc2dial 70b greedy test 2000 2000 3439 $num_ctxs $model_name true
 
-## quac 7354 samples
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh quac 70b greedy test 0 2000 3445 $num_ctxs $model_name true
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh quac 70b greedy test 2000 2000 3445 $num_ctxs $model_name true
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh quac 70b greedy test 4000 2000 3445 $num_ctxs $model_name true
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh quac 70b greedy test 6000 2000 3445 $num_ctxs $model_name true
+# ## quac 7354 samples
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh quac 70b greedy test 0 2000 3439 $num_ctxs $model_name true
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh quac 70b greedy test 2000 2000 3439 $num_ctxs $model_name true
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh quac 70b greedy test 4000 2000 3439 $num_ctxs $model_name true
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh quac 70b greedy test 6000 2000 3439 $num_ctxs $model_name true
 
-## qrecc 2805 samples
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh qrecc 70b greedy test 0 2000 3445 $num_ctxs $model_name true
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh qrecc 70b greedy test 2000 2000 3445 $num_ctxs $model_name true
+# ## qrecc 2805 samples
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh qrecc 70b greedy test 0 2000 3439 $num_ctxs $model_name true
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh qrecc 70b greedy test 2000 2000 3439 $num_ctxs $model_name true
 
-## coqa 7983 samples
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh coqa 70b greedy test 0 2000 3445 $num_ctxs $model_name true
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh coqa 70b greedy test 2000 2000 3445 $num_ctxs $model_name true
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh coqa 70b greedy test 4000 2000 3445 $num_ctxs $model_name true
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh coqa 70b greedy test 6000 2000 3445 $num_ctxs $model_name true
+# ## coqa 7983 samples
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh coqa 70b greedy test 0 2000 3439 $num_ctxs $model_name true
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh coqa 70b greedy test 2000 2000 3439 $num_ctxs $model_name true
+bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh coqa 70b greedy test 4000 2000 3438 $num_ctxs $model_name true
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh coqa 70b greedy test 6000 2000 3439 $num_ctxs $model_name true
 
-## doqa_cooking 1797 samples
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh doqa_cooking 70b greedy test 0 2000 3445 $num_ctxs $model_name true
+# ## doqa_cooking 1797 samples
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh doqa_cooking 70b greedy test 0 2000 3439 $num_ctxs $model_name true
 
-## doqa_movies 1884 samples
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh doqa_movies 70b greedy test 0 2000 3445 $num_ctxs $model_name true
+# ## doqa_movies 1884 samples
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh doqa_movies 70b greedy test 0 2000 3439 $num_ctxs $model_name true
 
-## doqa_travel 1713 samples
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh doqa_travel 70b greedy test 0 2000 3445 $num_ctxs $model_name true
+# ## doqa_travel 1713 samples
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh doqa_travel 70b greedy test 0 2000 3439 $num_ctxs $model_name true
 
-## topiocqa 2514 samples
-# num_ctxs = 20
-# num_ctxs = 30
-# num_ctxs = 12
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh topiocqa 70b greedy test 0 1300 3445 20 $model_name true
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh topiocqa 70b greedy test 1300 1300 3445 20 $model_name true
+# ## topiocqa 2514 samples
+# # num_ctxs = 20
+# # num_ctxs = 30
+# # num_ctxs = 12
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh topiocqa 70b greedy test 0 1300 3439 20 $model_name true
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh topiocqa 70b greedy test 1300 1300 3439 20 $model_name true
 
-## hybriddial 1111 samples
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh hybriddial 70b greedy test 0 1200 3445 $num_ctxs $model_name true
+# ## hybriddial 1111 samples
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh hybriddial 70b greedy test 0 1200 3439 $num_ctxs $model_name true
 
-## inscit 502 samples
-## num_ctxs=20
-## num_ctxs=30
-## num_ctxs=12
-bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh inscit 70b greedy test 0 550 3445 20 $model_name true
+# ## inscit 502 samples
+# ## num_ctxs=20
+# ## num_ctxs=30
+# ## num_ctxs=12
+# bash examples/fqa_llama2/generate_llama2_fqa_zeroshot.sh inscit 70b greedy test 0 550 3439 20 $model_name true
 
 
 # ## llmware

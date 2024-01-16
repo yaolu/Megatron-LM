@@ -183,6 +183,9 @@ run_cmd="python -u ${DIR}/tasks/foundational_QA/finetune_gpt_with_pretrain.py ${
 # bash examples/fqa_llama2/finetune_llama2.sh multiturn_qa_blend_commercial_v22 70b 64 3e-7 1 llama2_text_70b_with_qc_multiturn
 # bash examples/fqa_llama2/finetune_llama2.sh multiturn_qa_blend_commercial_v23 70b 64 3e-7 1 llama2_text_70b_with_qc_multiturn
 # bash examples/fqa_llama2/finetune_llama2.sh multiturn_qa_blend_commercial_v24 70b 64 3e-7 1 llama2_text_70b_with_qc_multiturn
+# bash examples/fqa_llama2/finetune_llama2.sh multiturn_qa_blend_commercial_v24_1 70b 64 3e-7 1 llama2_text_70b_with_qc_multiturn
+# bash examples/fqa_llama2/finetune_llama2.sh multiturn_qa_blend_commercial_v24_2 70b 64 3e-7 1 llama2_text_70b_with_qc_multiturn
+# bash examples/fqa_llama2/finetune_llama2.sh multiturn_qa_blend_commercial_v24_3 70b 64 3e-7 1 llama2_text_70b_with_qc_multiturn
 
 
 ## financial remove single turn in the blends

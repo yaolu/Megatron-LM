@@ -61,17 +61,30 @@ class F1Metric:
         return precision, recall, f1
         
     @staticmethod
-    def compute_all_pairs(guesses: List[str], answers: List[str]):
+    def compute_all_pairs(guesses: List[str], answers: List[list]):
         # additional augment:
         assert len(guesses) == len(answers)
-        
+        count_empty_answers = 0
         precision_list, recall_list, f1_list = [], [], []
         for guess, answer in zip(guesses, answers):
-            precision, recall, f1 = F1Metric.compute_each_pair(guess, answer)
-            if precision is None or recall is None or f1 is None:
-                continue
-            precision_list.append(precision)
-            recall_list.append(recall)
-            f1_list.append(f1)
+            assert type(answer) == list
+            f1_list_tmp = []
+            for answer_each in answer:
+                answer_each = answer_each.strip()
+                if answer_each == "":
+                    continue
+                precision, recall, f1 = F1Metric.compute_each_pair(guess, answer_each)
+                f1_list_tmp.append(f1)
+            
+            if len(f1_list_tmp) > 0:
+                f1 = max(f1_list_tmp)
+                if precision is None or recall is None or f1 is None:
+                    continue
+                precision_list.append(precision)
+                recall_list.append(recall)
+                f1_list.append(f1)
+            else:
+                count_empty_answers += 1
+        print("number of instances that has empty answers: %d" % count_empty_answers)
         
         return np.mean(precision_list), np.mean(recall_list), np.mean(f1_list)

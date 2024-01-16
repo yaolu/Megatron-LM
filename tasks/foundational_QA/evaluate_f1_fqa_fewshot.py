@@ -145,132 +145,120 @@ def evaluate_cannot_answer_acc(ground_truth_file, prediction_file):
 
 if __name__ == "__main__":
 
-    # model_name = "multiturn_qa_blendv2_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    # model_name = "multiturn_qa_blendv3_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    # model_name = "multiturn_qa_blendv4_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    # model_name = "multiturn_qa_blend_commercial_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    # model_name = "multiturn_qa_blend_commercial_v2_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx5_43b_64_3e-7"
-    # model_name = "multiturn_qa_blend_commercial_v3_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx5_43b_64_3e-7"
-    # model_name = "multiturn_qa_blend_commercial_v4_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    # model_name = "multiturn_qa_blend_commercial_v5_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    # model_name = "multiturn_qa_blend_commercial_v6_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    model_name = "multiturn_qa_blend_commercial_v7_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_ctx1_43b_64_3e-7"
-    # model_name = "multiturn_qa_blendv2_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_fewshot_ctx1_43b_64_3e-7"
-    # model_name = "multiturn_qa_blendv2_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_fewshot_fixedshot_ctx1_43b_64_3e-7"
-    # model_name = "multiturn_qa_blendv2_gpt_1e-8_conv_quiet_cockatoo_pp1_addmultiturn_same_format_fewshot_old"
-    ckpt_path="/lustre/fsw/adlr/adlr-nlp/zihanl/inform/foundational-qa/checkpoints/applications/{}".format(model_name)
+    model_name = "multiturn_qa_blendv2_llama2_text_70b_with_qc_multiturn_same_format_ctx1_70b_64_3e-7"
+    ckpt_path="/lustre/fsw/adlr/adlr-nlp/zihanl/inform/foundational-qa/llama-2/checkpoints/applications/{}".format(model_name)
     n_ctx=5
 
     ## single-turn (batch-1)
-    prediction_file = ckpt_path + "/att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_generate_fewshot_43b_test_greedy_0_250_3000_ret.txt.v2".format(n_ctx)
+    prediction_file = ckpt_path + "/att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_generate_fewshot_70b_test_greedy_0_250_3600_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/data/att/att_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved/test.json"
     print("-"*80)
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_{}_generate_fewshot_43b_test_greedy_0_250_3000_ret.txt.v2".format(n_ctx)
+    prediction_file = ckpt_path + "/ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_{}_generate_fewshot_70b_test_greedy_0_250_3600_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved/test.json"
     print("-"*80)
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/nq_{}_generate_fewshot_43b_test_greedy_0_200_3000_ret.txt.v2".format(n_ctx)
+    prediction_file = ckpt_path + "/nq_{}_generate_fewshot_70b_test_greedy_0_200_3600_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/NQ/test.json"
     print("-"*80)
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/nv_benefits_dragon_retriever300_retrieved_generic_{}_generate_fewshot_43b_test_greedy_0_250_3000_ret.txt.v2".format(n_ctx)
+    prediction_file = ckpt_path + "/nv_benefits_dragon_retriever300_retrieved_generic_{}_generate_fewshot_70b_test_greedy_0_250_3600_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/nv_benefits_dragon_retriever300_retrieved_generic/test.json"
     print("-"*80)
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/NVIT_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_generate_fewshot_43b_test_greedy_0_250_3000_ret.txt.v2".format(n_ctx)
+    prediction_file = ckpt_path + "/NVIT_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_generate_fewshot_70b_test_greedy_0_250_3600_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/NVIT_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved/test.json"
     print("-"*80)
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/Iternal_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_generate_fewshot_43b_test_greedy_0_250_3000_ret.txt.v2".format(n_ctx)
+    prediction_file = ckpt_path + "/Iternal_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved_{}_generate_fewshot_70b_test_greedy_0_250_3600_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/Iternal_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved/test.json"
     print("-"*80)
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_{}_generate_fewshot_43b_test_greedy_0_250_3000_ret.txt.v2".format(n_ctx)
+    prediction_file = ckpt_path + "/landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved_{}_generate_fewshot_70b_test_greedy_0_250_3600_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved/test.json"
     print("-"*80)
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
     
-    # ## single-turn (batch-2)
-    # prediction_file = ckpt_path + "/BioASQ_{}_generate_fewshot_43b_test_greedy_0_1000_3000_ret.txt.v2".format(n_ctx)
-    # ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/BioASQ/test.json"
-    # print("-"*80)
-    # print(prediction_file)
-    # print(ground_truth_file)
-    # evaluate_f1(ground_truth_file, prediction_file)
+    ## single-turn (batch-2)
+    prediction_file = ckpt_path + "/BioASQ_{}_generate_fewshot_70b_test_greedy_0_1000_3600_ret.txt.v2".format(n_ctx)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/BioASQ/test.json"
+    print("-"*80)
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
     
-    # prediction_file = ckpt_path + "/DuoRC_ParaphraseRC_{}_generate_fewshot_43b_test_greedy_0_1000_3000_ret.txt.v2".format(n_ctx)
-    # ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/DuoRC_ParaphraseRC/test.json"
-    # print("-"*80)
-    # print(prediction_file)
-    # print(ground_truth_file)
-    # evaluate_f1(ground_truth_file, prediction_file)
+    prediction_file = ckpt_path + "/DuoRC_ParaphraseRC_{}_generate_fewshot_70b_test_greedy_0_1000_3600_ret.txt.v2".format(n_ctx)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/DuoRC_ParaphraseRC/test.json"
+    print("-"*80)
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
     
-    # prediction_file = ckpt_path + "/boolq_{}_generate_fewshot_43b_test_greedy_0_1000_3000_ret.txt.v2".format(n_ctx)
-    # ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/boolq/test.json"
-    # print("-"*80)
-    # print(prediction_file)
-    # print(ground_truth_file)
-    # evaluate_f1(ground_truth_file, prediction_file)
+    prediction_file = ckpt_path + "/boolq_{}_generate_fewshot_70b_test_greedy_0_1000_3600_ret.txt.v2".format(n_ctx)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/boolq/test.json"
+    print("-"*80)
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
     
-    # prediction_file = ckpt_path + "/msmarco_{}_generate_fewshot_43b_test_greedy_0_1000_3000_ret.txt.v2".format(n_ctx)
-    # ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/msmarco/test.json"
-    # print("-"*80)
-    # print(prediction_file)
-    # print(ground_truth_file)
-    # evaluate_f1(ground_truth_file, prediction_file)
+    prediction_file = ckpt_path + "/msmarco_{}_generate_fewshot_70b_test_greedy_0_1000_3600_ret.txt.v2".format(n_ctx)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/msmarco/test.json"
+    print("-"*80)
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
     
-    # prediction_file = ckpt_path + "/multirc_{}_generate_fewshot_43b_test_greedy_0_1000_3000_ret.txt.v2".format(n_ctx)
-    # ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/multirc/test.json"
-    # print("-"*80)
-    # print(prediction_file)
-    # print(ground_truth_file)
-    # evaluate_f1(ground_truth_file, prediction_file)
+    prediction_file = ckpt_path + "/multirc_{}_generate_fewshot_70b_test_greedy_0_1000_3600_ret.txt.v2".format(n_ctx)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/multirc/test.json"
+    print("-"*80)
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
     
-    # prediction_file = ckpt_path + "/race_{}_generate_fewshot_43b_test_greedy_0_1000_3000_ret.txt.v2".format(n_ctx)
-    # ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/race/test.json"
-    # print("-"*80)
-    # print(prediction_file)
-    # print(ground_truth_file)
-    # evaluate_f1(ground_truth_file, prediction_file)
+    prediction_file = ckpt_path + "/race_{}_generate_fewshot_70b_test_greedy_0_1000_3600_ret.txt.v2".format(n_ctx)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/race/test.json"
+    print("-"*80)
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
     
-    # prediction_file = ckpt_path + "/TextbookQA_{}_generate_fewshot_43b_test_greedy_0_1000_3000_ret.txt.v2".format(n_ctx)
-    # ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/TextbookQA/test.json"
-    # print("-"*80)
-    # print(prediction_file)
-    # print(ground_truth_file)
-    # evaluate_f1(ground_truth_file, prediction_file)
+    prediction_file = ckpt_path + "/TextbookQA_{}_generate_fewshot_70b_test_greedy_0_1000_3600_ret.txt.v2".format(n_ctx)
+    ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/single-turn-qa/TextbookQA/test.json"
+    print("-"*80)
+    print(prediction_file)
+    print(ground_truth_file)
+    evaluate_f1(ground_truth_file, prediction_file)
     
 
     ## multi-turn
-    prediction_file = ckpt_path + "/doc2dial_{}_generate_fewshot_43b_test_greedy_0_1000_3000_ret.txt.v2".format(n_ctx)
+    prediction_file = ckpt_path + "/doc2dial_{}_generate_fewshot_70b_test_greedy_0_1000_3600_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/multi-turn-qa/doc2dial/doc2dial_ftdragon_chatgptgen7k_chunk150_QA_test.json"
     print("-"*80)
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/quac_{}_generate_fewshot_43b_test_greedy_0_1000_3000_ret.txt.v2".format(n_ctx)
+    prediction_file = ckpt_path + "/quac_{}_generate_fewshot_70b_test_greedy_0_1000_3600_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/multi-turn-qa/quac/quac_ftdragon_chatgptgen7k_chunk150_QA_test.json"
     print("-"*80)
     print(prediction_file)
@@ -279,14 +267,14 @@ if __name__ == "__main__":
     print("accuracy on cannot answer:")
     evaluate_cannot_answer_acc(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/qrecc_{}_generate_fewshot_43b_test_greedy_0_1000_3000_ret.txt.v2".format(n_ctx)
+    prediction_file = ckpt_path + "/qrecc_{}_generate_fewshot_70b_test_greedy_0_1000_3600_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/multi-turn-qa/qrecc/qrecc_ftdragon_chatgptgen7k_chunk150_QA_test.json"
     print("-"*80)
     print(prediction_file)
     print(ground_truth_file)
     evaluate_f1(ground_truth_file, prediction_file)
 
-    prediction_file = ckpt_path + "/sharc_{}_generate_fewshot_43b_test_greedy_0_1000_3000_ret.txt.v2".format(n_ctx)
+    prediction_file = ckpt_path + "/sharc_{}_generate_fewshot_70b_test_greedy_0_1000_3600_ret.txt.v2".format(n_ctx)
     ground_truth_file = "/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa/multi-turn-qa/sharc/sharc_ftdragon_chatgptgen7k_chunk150_QA_test.json"
     print("-"*80)
     print(prediction_file)

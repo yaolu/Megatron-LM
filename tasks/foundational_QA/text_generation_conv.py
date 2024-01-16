@@ -31,7 +31,7 @@ from megatron.training import get_model
 from megatron.text_generation import generate_and_post_process, beam_search_and_post_process
 from megatron.arguments import core_transformer_config_from_args
 from finetune_gpt_with_pretrain import get_tasks_args
-from dataset_conv import reformat_prompt_v1, reformat_prompt_v2, preprocess
+from dataset_conv import reformat_prompt_v1, reformat_prompt_v2, reformat_prompt_chatbased, preprocess
 from dataset_conv import load_incontext_fewshot_samples, reformat_prompt_with_fewshot_samples
 from reformat_prompt import reformat_prompt_for_malachite_sawfly, reformat_prompt_for_neat_spoonbill
 from reformat_prompt import reformat_prompt_for_rlhf_models
@@ -168,11 +168,12 @@ def generate_samples_conditional(model):
                         elif args.model_name == "vehement_coyote" or args.model_name == "wine_jackdaw":
                             input_tokens = reformat_prompt_for_rlhf_models(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
 
-                        elif args.model_name is not None and "llama2_chat" in args.model_name:
+                        elif args.model_name is not None and ("llama2_chat_70b" == args.model_name or "llama2_chat_13b" == args.model_name or "llama2_chat_7b" == args.model_name):
                             input_tokens = reformat_prompt_llama2_chat(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
 
                         else:
                             input_tokens = reformat_prompt_v2(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
+                            # input_tokens = reformat_prompt_chatbased(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
                     # input_tokens = reformat_prompt_v1(query, neighbours, args.task, args.ft_neighbours, max_target_len, tokenizer, args.seq_length)
                     raw_text = tokenizer.detokenize(input_tokens)
                     print(raw_text)
