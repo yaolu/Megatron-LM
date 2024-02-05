@@ -1,12 +1,16 @@
 
-sample_input_file="/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/$TASK/${split}.json"
-DATA_FOLDER="/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/$TASK"
+#sample_input_file="/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/$TASK/${split}.json"
+#DATA_FOLDER="/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/$TASK"
+#FEWSHOT_INPUT_FOLDER="/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa"
+
+sample_input_file="/lustre/fsw/adlr/adlr-nlp/boxinw/instruction_tuning_data/$TASK/${split}.json"
+DATA_FOLDER="/lustre/fs4/portfolios/adlr/users/boxinw/instruction_tuning_data/$TASK"
 FEWSHOT_INPUT_FOLDER="/lustre/fsw/adlr/adlr-nlp/zihanl/datasets/foundational-qa"
 
 if [[ $TASK == "nq" ]]; then
-    sample_input_file="/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/NQ/${split}.json"
+    sample_input_file="/lustre/fs4/portfolios/adlr/users/boxinw/instruction_tuning_data/NQ/${split}.json"
     fewshot_input_file="${FEWSHOT_INPUT_FOLDER}/single-turn-qa/NQ/fewshot_samples.json"
-    DATA_FOLDER="/lustre/fsw/adlr/adlr-nlp/pengx/retro/data/NQ"
+    DATA_FOLDER="/lustre/fs4/portfolios/adlr/users/boxinw/instruction_tuning_data/NQ"
 fi
 
 if [[ $TASK == "tqa" ]]; then

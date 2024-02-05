@@ -38,7 +38,7 @@ def format_answer(answer):
     return " {}".format(answer)
 
 """GPT ft dataset."""
-def preprocess(data_file, inference_only=False, retrieved_neighbours=False, fix_newsqa=False):
+def preprocess(data_file, inference_only=False, retrieved_neighbours=False, fix_newsqa=True):
 
     args = get_args()
     assert args.ft_neighbours > 0 
@@ -66,16 +66,16 @@ def preprocess(data_file, inference_only=False, retrieved_neighbours=False, fix_
                 contexts = instance["ctxs"]
                 neighbours = ["title: " + ctx["title"] + ", source: " + ctx["text"] for ctx in contexts] 
             else:
-                if "ctxs" in instance and instance["ctxs"] != "" and instance["ctxs"] != None and instance["ctxs"] != []:
-                    assert type(instance["ctxs"]) == list
-                    neighbours = ["title: " + ctx["title"] + ", source: " + ctx["text"] for ctx in instance["ctxs"]]
-                else:
-                    if "sub-paragraphs" in instance:
-                        neighbours = ["title: , source: " + instance["sub-paragraphs"]]
-                    elif fix_newsqa and "sub_paragraph" in instance:
-                        neighbours = ["title: , source: " + instance["sub_paragraph"]]
+                if "sub-paragraphs" in instance:
+                    if type(instance["sub-paragraphs"]) == list:  # doc2dial:
+                        neighbours = [
+                            "title: " + instance["sub-paragraphs"][0] + ", source: " + instance["sub-paragraphs"][1]]
                     else:
-                        neighbours = ["title: , source: "]
+                        neighbours = ["title: , source: " + instance["sub-paragraphs"]]
+                elif fix_newsqa and "sub_paragraph" in instance:
+                    neighbours = ["title: , source: " + instance["sub_paragraph"]]
+                else:
+                    neighbours = ["title: , source: "]
 
         if inference_only:
             data.append((question, None, neighbours))
@@ -319,6 +319,9 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
     # system = "System: This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions.\n\n"
     system = "System: This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions based on the context. The assistant should also indicate when the answer cannot be found in the context.\n\n"
 
+    if "gov_report" in dataset_name or "screen_fd" in dataset_name or "qmsum" in dataset_name:
+        system = "System: This is a chat between a user and an artificial intelligence assistant. The assistant gives helpful, detailed, and polite answers to the user's questions based on the context.\n\n"
+
     if dataset_name in ["oasst", "quiet_cockatoo", "quiet-cockatoo_commercial"]:
         ## replace \n\n with \n
         all_input = system + query
@@ -338,11 +341,12 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
     # if dataset_name == "NarrativeQAretrieval":
     #     system += "The following text is from top-5 retrieved context.\n"
 
-    short_span_with_context = ["drop", "NarrativeQA", "NarrativeQAretrieval", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq", "BioASQ", "DuoRC_ParaphraseRC", "TextbookQA", "WikiTableQuestions", "HybridQA"]
+    short_span_with_context = ["drop", "NarrativeQA", "NarrativeQAretrieval", "QASC", "Quoref", "ROPES", "squad1.1", "squad2.0", "newsqa", "nq", "BioASQ", "DuoRC_ParaphraseRC", "TextbookQA", "WikiTableQuestions", "HybridQA", "tqa"]
     yes_no_without_context = ["boolq", "multirc"]
     multichoices = ["race"]
     # multi-turn qa datasets
     formatted_dataset_name = ["convqa", "convqav2", "chatgptgen", "chatgptgennoanswer", "chatgptgennoanswerv2", "doc2dial", "doc2dialv2", "doc2dial_dragon", "quac", "quacv2", "quac_dragon", "qrecc", "qrecc_dragon", "sharc", "nvolvemultiturn1300", "nvolvemultiturn1700", "nvolvemultiturnfiltered5k", "nvolvemultiturnfiltered5knoanswer", "nvolvemultiturnfiltered7k", "nvolvemultiturnfiltered7knoanswer", "nvolvemultiturnfiltered7knoanswer1k", "nvolvemultiturnfiltered7knoanswer2k", "nvolvemultiturnfiltered7knoanswer3k", "doqa_cooking", "doqa_movies", "doqa_travel", "hybriddial", "inscit", "inscit_dragon"]
+    summary_dataset_name = ["gov_report", "summ_screen_fd"]
 
     formatted_dataset_name_short = ["coqa"]
     formatted_dataset_name_short_and_long = ["sqa", "topiocqa", "topiocqa_dragon"]
@@ -409,6 +413,8 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
             user = "Answer the following question with True or False. {}".format(query)
         elif dataset_name in multichoices:
             user = "Answer the following question by selecting one of the provided options. {}".format(query)
+        elif dataset_name.split(".")[0] in summary_dataset_name:
+            user = "Summarize the passage above."
         elif dataset_name in math_program_with_context:
             ## for training
             # user = "Answer the following question with the math arithmetic (add, subtract, multiply, and divide). {}".format(query)
@@ -429,8 +435,12 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
             # fetaqa/llmware_unanswerable goes to here by default
             user = "Please give a full and complete answer for the question. {}".format(query)
 
-        dialogue_format="User: {}\n\nAssistant:"
-        dialogue_turn = dialogue_format.format(user)
+        if dataset_name in short_span_with_context:
+            dialogue_format = "User: {}\n\nAssistant: The answer is"
+            dialogue_turn = dialogue_format.format(user)
+        else:
+            dialogue_format = "User: {}\n\nAssistant:"
+            dialogue_turn = dialogue_format.format(user)
 
     if ft_neighbours > 0:
         # if shuffle_topn:
@@ -442,7 +452,7 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
         # Truncate to `max_sequence_length` to fit in output tokens.
 
         ## normal ordering
-        context = "\n\n".join(neighbours[0:ft_neighbours]) + "\n\n"
+        # context = "\n\n".join(neighbours[0:ft_neighbours]) + "\n\n"
 
         # ## reverse ordering
         # ctx_list = neighbours[0:ft_neighbours]
@@ -468,11 +478,12 @@ def reformat_prompt_v2(query, neighbours, dataset_name, ft_neighbours, \
         # random.shuffle(ctx_list)
         # context = "\n\n".join(ctx_list) + "\n\n"
 
+        context = "\n\n".join(neighbours[0:ft_neighbours])
         context_tokens = tokenizer.tokenize(context)
         dialogue_tokens = tokenizer.tokenize(dialogue_turn)
         system_tokens = tokenizer.tokenize(system)
         context_tokens = context_tokens[:max_seq_length - max_output_len - len(dialogue_tokens) - len(system_tokens)]
-        context = tokenizer.detokenize(context_tokens)
+        context = tokenizer.detokenize(context_tokens) + "\n\n"  # in case "\n\n" got truncated
         all_input = system + context + dialogue_turn
 
         # ## replace \n\n with \n

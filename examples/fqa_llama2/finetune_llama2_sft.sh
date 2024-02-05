@@ -27,7 +27,7 @@ fi
 
 if [[ $model_size == "13b" ]]; then
     num_nodes=8
-    min_lr=$lr
+    min_lr=$lr``
 fi
 
 if [[ $model_size == "70b" ]]; then

@@ -33,7 +33,7 @@ wine_jackdaw="/lustre/fsw/adlr/adlr-nlp/pengx/megatron-lm/tools/megatron_ckpts/w
 llama2_chat_7b="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/llama-2/checkpoints/megatron/chat/7b/"
 llama2_text_7b="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/llama-2/checkpoints/megatron/text/7b/"
 llama2_chat_13b="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/llama-2/checkpoints/megatron/chat/13b/"
-llama2_text_13b="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/llama-2/checkpoints/megatron/text/13b/"
+llama2_text_13b="/lustre/fs4/portfolios/adlr/users/boxinw/llava-megatron-lm/checkpoints/llama2_13b_text/"
 llama2_chat_70b_pp1="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/llama-2/checkpoints/megatron/chat/70b/"
 llama2_text_70b_pp1="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/llama-2/checkpoints/megatron/text/70b/"
 llama2_chat_70b="/lustre/fsw/adlr/adlr-nlp/pengx/shared_ckpts/llama2_megatron_chat_70b_pp4/"
@@ -42,4 +42,4 @@ llama2_text_70b="/lustre/fsw/adlr/adlr-nlp/pengx/shared_ckpts/llama2_megatron_te
 llama2_text_70b_with_qc="/lustre/fsw/adlr/adlr-nlp/pengx/sft_70b_llama2_qa/checkpoints/applications/qc_llama2_text_70b_base_70b_128_5e-6/"
 
 TOKENIZER_MODEL="/lustre/fsw/adlr/adlr-nlp/mpatwary/data/multilingual/multi-1.1t-gtc/mt_nlg_plus_multilingual_ja_zh_the_stack_frac_015_256k.model"
-TOKENIZER_MODEL_LLAMA2="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/llama-2/tokenizer.model"
+TOKENIZER_MODEL_LLAMA2="/lustre/fsw/portfolios/adlr/projects/adlr_nlp_arch/adlr_nlp_sharing/llama-2/tokenizer.model"

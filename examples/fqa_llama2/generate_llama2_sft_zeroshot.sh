@@ -73,7 +73,7 @@ GEN_ARGS="$SAMPLE_ARGS \
           --num-gen $num_gen \
           --sample-input-file $sample_input_file \
           --sample-output-file $sample_output_file \
-          --out-seq-length 64 \
+          --out-seq-length 256 \
           --model-name $model_card "
 
 DISTRIBUTED_ARGS="--nproc_per_node ${mod_par} \
@@ -121,8 +121,9 @@ export NCCL_DEBUG=INFO
 export NCCL_IB_TIMEOUT=19
 export NCCL_IB_SL=1
 export CUDA_DEVICE_MAX_CONNECTIONS=1
+PARTITION="batch_block1,batch_block2,batch_block3,batch_block4,adlr-debug-batch_block4,backfill_block1,backfill_block2,backfill_block3,backfill_block4"
 
-submit_job --gpu ${mod_par} --nodes ${pip_par} --email_mode never  --mounts $MOUNTS --partition $PARTITION --image $DOCKER  -c "$COMMAND" -n "generate_zeroshot_${model_size}_${TASK}" --duration 4 --exclude luna-0534,luna-0253,luna-0377,luna-0524,luna-0527
+submit_job --gpu ${mod_par} --nodes ${pip_par} --email_mode never  --mounts $MOUNTS --partition $PARTITION --image $DOCKER  -c "$COMMAND" -n "generate_zeroshot_${model_size}_${TASK}" --duration 4
 
 echo $COMMAND
 # $COMMAND
