@@ -262,6 +262,11 @@ def main():
     # Set up model and load checkpoint
     model = get_model(model_provider, wrap_with_ddp=False)
     print(model)
+    for module in model:
+        for name, param in module.named_parameters():
+            if torch.distributed.get_rank() == 0:
+                print(name, param.shape)
+
     args = get_args()
 
     if args.load is not None:

@@ -4,7 +4,7 @@
 #model_name=llama2_text_70b_with_qc
 model_name=llama2_text_70b_pp1
 #model_name=llama2_chat_70b_pp1
-model_name=llama2_text_13b
+#model_name=llama2_text_13b
 num_ctxs=5
 
 
@@ -42,15 +42,16 @@ num_ctxs=5
 #done
 
 #
-bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh nq 13b greedy test  0 200 $num_ctxs $model_name true
+#bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh nq 13b greedy test  0 200 $num_ctxs $model_name true
+#bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh nq 70b greedy test  0 200 $num_ctxs $model_name true
 ## bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh tqa 70b greedy test  0 20000 $num_ctxs $model_name true
 ## bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh tqa 70b greedy test  0 5000 $num_ctxs $model_name true
 ## bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh tqa 70b greedy test  5000 5000 $num_ctxs $model_name true
 ## bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh tqa 70b greedy test  10000 20000 $num_ctxs $model_name true
 
-#bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved 70b greedy test  0 250 $num_ctxs $model_name true
-#bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh NVIT_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved 70b greedy test 0 250 $num_ctxs $model_name true
-#bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved 70b greedy test 0 250 $num_ctxs $model_name true
+bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved 70b greedy test  0 250 $num_ctxs $model_name true
+bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh NVIT_dragon_retriever_msmarcominilm_reranker_chunkbysents300_retrieved 70b greedy test 0 250 $num_ctxs $model_name true
+bash examples/fqa_llama2/generate_llama2_sft_zeroshot.sh landrover_plus_benz_clean_plus_ford_tasb_ftmsmarcominilm_chunkbysents150_benzlandroverford_retrieved 70b greedy test 0 250 $num_ctxs $model_name true
 
 
 num_ctxs=1

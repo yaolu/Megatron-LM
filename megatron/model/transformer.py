@@ -456,6 +456,10 @@ class ParallelAttention(MegatronModule):
 
         # Strided linear layer.
         if attention_type == AttnType.self_attn:
+            if args.rank == 0:
+                print(query_projection_size)
+                print(kv_projection_size)
+                print(query_projection_size + 2 * kv_projection_size)
             self.query_key_value = tensor_parallel.ColumnParallelLinear(
                 config.hidden_size,
                 query_projection_size + 2 * kv_projection_size,

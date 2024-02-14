@@ -35,7 +35,7 @@ llama2_text_7b="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/llama-2/checkpoints/m
 llama2_chat_13b="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/llama-2/checkpoints/megatron/chat/13b/"
 llama2_text_13b="/lustre/fs4/portfolios/adlr/users/boxinw/llava-megatron-lm/checkpoints/llama2_13b_text/"
 llama2_chat_70b_pp1="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/llama-2/checkpoints/megatron/chat/70b/"
-llama2_text_70b_pp1="/lustre/fsw/adlr/adlr-nlp/adlr-nlp-sharing/llama-2/checkpoints/megatron/text/70b/"
+llama2_text_70b_pp1="/lustre/fs4/portfolios/adlr/users/boxinw/llava-megatron-lm/checkpoints/llama2_70b_text"
 llama2_chat_70b="/lustre/fsw/adlr/adlr-nlp/pengx/shared_ckpts/llama2_megatron_chat_70b_pp4/"
 llama2_text_70b="/lustre/fsw/adlr/adlr-nlp/pengx/shared_ckpts/llama2_megatron_text_70b_pp4/"
 
