@@ -183,7 +183,9 @@ class Partition(object):
             self.print_processing_stats(i, proc_start, total_bytes_processed)
 
         fin.close()
-        builders[key].finalize(output_idx_files[key])
+
+        for key in builders:
+            builders[key].finalize(output_idx_files[key])
 
 
 def get_args():
@@ -203,7 +205,8 @@ def get_args():
                        choices=['BertWordPieceLowerCase','BertWordPieceCase',
                                 'GPT2BPETokenizer', 'SentencePieceTokenizer',
                                 'GPTSentencePieceTokenizer', 'Llama2Tokenizer',
-                                'Llama3Tokenizer', 'MistralTokenizer', 'NullTokenizer'],
+                                'Llama3Tokenizer', 'MistralTokenizer', 'HuggingFaceTokenizer',
+                                'NullTokenizer'],
                        help='What type of tokenizer to use.')
     group.add_argument('--tokenizer-model', type=str, default=None,
                        help='YTTM tokenizer model.')
