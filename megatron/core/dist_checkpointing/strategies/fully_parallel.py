@@ -30,6 +30,7 @@ from megatron.core.dist_checkpointing.validation import (
     validate_sharding_integrity,
 )
 
+# TODO: remove TE references once the TE bug is fixed
 # Check if Transformer Engine has Float8Tensor class
 HAVE_TE_FLOAT8TENSOR = False
 try:
