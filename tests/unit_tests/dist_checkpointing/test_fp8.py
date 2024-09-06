@@ -92,7 +92,6 @@ class TestFP8:
                 load_strategy = None
 
             loaded_state_dict = load(get_state_dict(8), ckpt_dir, load_strategy)
-            print(loaded_state_dict)
             assert torch.all(loaded_state_dict['a'] == 4)
             assert torch.all(loaded_state_dict['b'] == 4)
         Utils.destroy_model_parallel()
