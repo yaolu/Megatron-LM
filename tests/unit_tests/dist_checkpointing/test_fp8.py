@@ -42,6 +42,7 @@ class TestFP8:
             ten = ten.from_float8()
         torch.distributed.broadcast(ten, src=src_rank)
         assert torch.all(ten == src_rank)
+        Utils.destroy_model_parallel()
 
     @pytest.mark.parametrize(
         ('use_fpsl', 'src_tp_pp', 'dest_tp_pp', 'load_exchange_algo'),
