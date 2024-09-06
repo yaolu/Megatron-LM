@@ -525,6 +525,9 @@ class FullyParallelLoadStrategyWrapper(LoadShardedStrategy):
                             )
 
                         # Because of a TE bug, we have to exchange a nominal dtype instead of FP8
+                        # It's ok to keep the nominal dtype after exchange, because TE will handle
+                        # this during state dict load.
+                        # TODO: remove it once the bug is fixed
                         if is_float8tensor(local_ten):
                             local_ten = local_ten.from_float8()
                             all_loaded_tensors[shard_id] = local_ten
@@ -611,6 +614,9 @@ class FullyParallelLoadStrategyWrapper(LoadShardedStrategy):
             # We can do async_op=True only if there is no CPU-copy follow-up
 
             # Because of a TE bug, we have to exchange a nominal dtype instead of FP8
+            # It's ok to keep the nominal dtype after exchange, because TE will handle
+            # this during state dict load.
+            # TODO: remove it once the bug is fixed
             if is_float8tensor(local_ten):
                 local_ten = local_ten.from_float8()
                 all_loaded_tensors[shard_id] = local_ten
