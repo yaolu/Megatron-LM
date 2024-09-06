@@ -10,7 +10,6 @@ from typing import Dict, List, NamedTuple, Optional, Set, Tuple, TypeVar, cast
 import numpy as np
 import torch
 import torch.distributed as dist
-from transformer_engine.pytorch.float8_tensor import Float8Tensor
 
 from megatron.core.dist_checkpointing import ShardedTensor
 from megatron.core.dist_checkpointing.core import CheckpointingException
@@ -30,6 +29,7 @@ from megatron.core.dist_checkpointing.validation import (
     determine_global_metadata,
     validate_sharding_integrity,
 )
+from megatron.core.utils import is_float8tensor
 
 logger = logging.getLogger(__name__)
 
@@ -510,7 +510,7 @@ class FullyParallelLoadStrategyWrapper(LoadShardedStrategy):
                             )
 
                         # Because of a TE bug, we have to exchange a nominal dtype instead of FP8
-                        if isinstance(local_ten, Float8Tensor):
+                        if is_float8tensor(local_ten):
                             local_ten = local_ten.from_float8()
                             all_loaded_tensors[shard_id] = local_ten
 
@@ -596,7 +596,7 @@ class FullyParallelLoadStrategyWrapper(LoadShardedStrategy):
             # We can do async_op=True only if there is no CPU-copy follow-up
 
             # Because of a TE bug, we have to exchange a nominal dtype instead of FP8
-            if isinstance(local_ten, Float8Tensor):
+            if is_float8tensor(local_ten):
                 local_ten = local_ten.from_float8()
                 all_loaded_tensors[shard_id] = local_ten
 
