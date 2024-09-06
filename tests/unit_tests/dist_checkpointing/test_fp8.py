@@ -1,28 +1,10 @@
 # Copyright (c) 2023, NVIDIA CORPORATION. All rights reserved.
-from copy import deepcopy
-from functools import partial
-from time import sleep
-from types import MethodType, SimpleNamespace
-from unittest import mock
 
 import pytest
 import torch
-from torch.optim import Adam
 from transformer_engine.pytorch.float8_tensor import Float8Tensor
 
-from megatron.core import parallel_state
-from megatron.core.dist_checkpointing import (
-    ShardedTensor,
-    load,
-    load_plain_tensors,
-    load_tensors_metadata,
-    save,
-)
-from megatron.core.dist_checkpointing.dict_utils import diff, nested_values
-from megatron.core.dist_checkpointing.optimizer import (
-    get_param_id_to_sharded_param_map,
-    optim_state_to_sharding_state,
-)
+from megatron.core.dist_checkpointing import ShardedTensor, load, save
 from megatron.core.dist_checkpointing.serialization import (
     get_default_load_sharded_strategy,
     get_default_save_sharded_strategy,
@@ -31,18 +13,7 @@ from megatron.core.dist_checkpointing.strategies.fully_parallel import (
     FullyParallelLoadStrategyWrapper,
     FullyParallelSaveStrategyWrapper,
 )
-from megatron.core.dist_checkpointing.utils import extract_sharded_tensors
-from megatron.core.tensor_parallel import model_parallel_cuda_manual_seed
-from megatron.core.transformer import TransformerConfig
-from megatron.core.transformer.mlp import apply_swiglu_sharded_factory
-from megatron.training.checkpointing import load_checkpoint, save_checkpoint
-from tests.unit_tests.dist_checkpointing import (
-    TempNamedDir,
-    init_basic_mock_args,
-    init_checkpointing_mock_args,
-    initialize_gpt_model,
-    setup_model_and_optimizer,
-)
+from tests.unit_tests.dist_checkpointing import TempNamedDir
 from tests.unit_tests.test_utilities import Utils
 
 
@@ -66,10 +37,9 @@ class TestFP8:
 
         ten = get_ten(dtype)
 
-        # exchange_ten = ten._data if isinstance(ten, Float8Tensor) else ten  # this is required for FP8
-
+        # because of a bug in TE, with the cast broadcast fails
         if isinstance(ten, Float8Tensor):
-            ten = ten.bfloat16()
+            ten = ten.from_float8()
         torch.distributed.broadcast(ten, src=src_rank)
         assert torch.all(ten == src_rank)
 

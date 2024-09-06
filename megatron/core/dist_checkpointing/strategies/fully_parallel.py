@@ -509,8 +509,9 @@ class FullyParallelLoadStrategyWrapper(LoadShardedStrategy):
                                 shard_id, unloaded_shards, shard_to_metadata, all_loaded_tensors
                             )
 
+                        # Because of a TE bug, we have to exchange a nominal dtype instead of FP8
                         if isinstance(local_ten, Float8Tensor):
-                            local_ten = local_ten.bfloat16()
+                            local_ten = local_ten.from_float8()
                             all_loaded_tensors[shard_id] = local_ten
 
                     round_tensors.append(local_ten)
@@ -594,8 +595,9 @@ class FullyParallelLoadStrategyWrapper(LoadShardedStrategy):
             global_src_rank = torch.distributed.get_global_rank(parallelization_group, rank)
             # We can do async_op=True only if there is no CPU-copy follow-up
 
+            # Because of a TE bug, we have to exchange a nominal dtype instead of FP8
             if isinstance(local_ten, Float8Tensor):
-                local_ten = local_ten.bfloat16()
+                local_ten = local_ten.from_float8()
                 all_loaded_tensors[shard_id] = local_ten
 
             torch.distributed.broadcast(
