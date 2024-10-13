@@ -126,8 +126,12 @@ class OptimizerParamScheduler:
             param_group (dict): parameter group from the optimizer.
         """
 
-        max_lr = param_group.get('max_lr', self.max_lr)
-        min_lr = param_group.get('min_lr', self.min_lr)
+        if self.use_checkpoint_opt_param_scheduler:
+            max_lr = param_group.get('max_lr', self.max_lr)
+            min_lr = param_group.get('min_lr', self.min_lr)
+        else:
+            max_lr = self.max_lr
+            min_lr = self.min_lr
 
         # Use linear warmup for the initial part.
         if self.lr_warmup_steps > 0 and self.num_steps <= self.lr_warmup_steps:
